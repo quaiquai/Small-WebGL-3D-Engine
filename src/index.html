@@ -6,10 +6,37 @@
   }
 </style>
 
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec3 vNormal;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+
+void main()
+{
+gl_Position =  projectionMatrix * modelViewMatrix * vPosition; // convert back to homogeneous coordinates;
+}
+</script>
+      
+<script id="fragment-shader" type="x-shader/x-fragment">
+      
+precision mediump float;
+      
+void
+main()
+{
+    gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
+}
+</script>
+
+
 <script type="text/javascript" src="../utils/webgl-utils.js"></script>
 <script type="text/javascript" src="../utils/initShaders.js"></script>
-<script type="text/javascript" src="../math/mat4.js"></script>
 <script type="text/javascript" src="./loadOBJ.js"></script>
+<script type="text/javascript" src="./main.js"></script>
+<script type="text/javascript" src="../Math/Mat2.js"></script>
+<script type="text/javascript" src="../Math/Mat3.js"></script>
+<script type="text/javascript" src="../Math/Mat4.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.js"></script>
 <script
   src="http://code.jquery.com/jquery-3.3.1.js"
@@ -20,6 +47,10 @@
 <canvas id="gl-canvas" width="window.innerWidth" height="window.innerHeight">
   Oops ... your browser doesn't support the HTML5 canvas element
 </canvas>
+
+<Script>
+  main();
+</Script>
 
 <br/>
 
