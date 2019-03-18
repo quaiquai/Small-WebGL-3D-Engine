@@ -7,25 +7,31 @@
 </style>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
-attribute vec4 vPosition;
-attribute vec3 vNormal;
-uniform mat4 modelViewMatrix;
+attribute vec3 vPosition;
+attribute vec3 nPosition;
+uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
+uniform mat4 modelMatrix;
+
+varying vec3 v_normal;
 
 void main()
 {
-gl_Position =  projectionMatrix * modelViewMatrix * vPosition; // convert back to homogeneous coordinates;
+gl_Position =  projectionMatrix * viewMatrix * modelMatrix * vec4(vPosition, 1.0); // convert back to homogeneous coordinates;
+v_normal = nPosition;
 }
 </script>
       
 <script id="fragment-shader" type="x-shader/x-fragment">
       
 precision mediump float;
+varying vec3 v_normal;
       
 void
 main()
 {
-    gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
+
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
 </script>
 
@@ -34,6 +40,7 @@ main()
 <script type="text/javascript" src="../utils/initShaders.js"></script>
 <script type="text/javascript" src="./loadOBJ.js"></script>
 <script type="text/javascript" src="./main.js"></script>
+<script type="text/javascript" src="./objLoader.js"></script>
 <script type="text/javascript" src="../Math/Mat2.js"></script>
 <script type="text/javascript" src="../Math/Mat3.js"></script>
 <script type="text/javascript" src="../Math/Mat4.js"></script>
