@@ -62,7 +62,7 @@ function toRadians (angle) {
 /**
  * @author Zachary Wartell
  * @class Mat3 is a 3x3 linear algebra matrix
- * 
+ *
  * Elements are internally stored in 'column major' layout [{@link Cite.2}], i.e. for matrix M with math convention M_rc (r=row,c=column)
  * ```javascript
  *    this.array = [ M_00, M_10, M_20,   // first column
@@ -204,7 +204,7 @@ class Mat3
         this.array [2] = new20;  this.array [5] = new21;  this.array [8] = new22;
 
 
-        
+
     }
 
     /**
@@ -370,7 +370,7 @@ class Mat3
                 0.0, 0.0, 1.0]);
         } else
             throw new Error("Unsupported Type");
-        
+
     }
 
     /**
@@ -391,7 +391,7 @@ class Mat3
             var M_r = new Mat3([Math.cos(toRadians(angle)), Math.sin(toRadians(angle)), 0.0,
                 -Math.sin(toRadians(angle)), Math.cos(toRadians(angle)), 0.0,
                 0.0, 0.0, 1.0]);
-            this.multiply(M_r);    
+            this.multiply(M_r);
         } else
             throw new Error("Unsupported Type");
     }
@@ -435,15 +435,15 @@ class Mat3
 const Vec3_SIZE=3;
 
 /**
- * @author Zachary Wartell 
+ * @author Zachary Wartell
  * @class Vec3 represents one of several different types of geometric objects or linear algebra objects.
  * Vec3 represents either:
- *    - the homogenous coordinates of 2D geometric points or vectors, stored as (x,y,w)   
- * OR 
+ *    - the homogenous coordinates of 2D geometric points or vectors, stored as (x,y,w)
+ * OR
  *    - the regular coordinates of 3D geometric points or vectors, stored as (x,y,z)
- * 
+ *
  * For 2D computations, the Vec3 should be used as (x,y,w), while for 3D computations it should be used as (x,y,z).
- * 
+ *
  * For operations combining Mat3 and Vec3 (which are 2D geometry computations), Vec3 is typically treated as a column matrix:
  * ```
  *         | x |
@@ -451,22 +451,22 @@ const Vec3_SIZE=3;
  *         | w |
  * ```
  * but some Mat3 methods treat Vec3 as a row matrix [x y w]
- * 
+ *
  * For efficiency Vec3 uses a TypedArray {@link Cite.1}.
  */
-class Vec3 
+class Vec3
 {
     /**
      * Construct a Vec3
      *
      * @author Zachary Wartell
      * @param {null | Number[] | Float32Array | Vec3 | ...Number }  x,y,z - <default> [0,0,0] | Array (size 3) | Float32Array (size 3) | Vec2, Number | Vec3 | x,y,z
-     */    
+     */
     constructor()
     {
         this.array = new Float32Array(Vec3_SIZE);
         if (arguments.length === 0)
-        // no arguements, so initial to 0's        
+        // no arguements, so initial to 0's
             this.array.set([0.0, 0.0, 0.0]);
         else
             this.set(...arguments); // ES6 'spread' operator
@@ -487,12 +487,12 @@ class Vec3
     {
         if (!(M instanceof Mat3))
             throw new Error("Unsupported Type");
-    
+
         this.array.set([this.array[0] * M.array[0] + this.array[1] * M.array[3] + this.array[2] * M.array[6],
             this.array[0] * M.array[1] + this.array[1] * M.array[4] + this.array[2] * M.array[7],
             this.array[0] * M.array[2] + this.array[1] * M.array[5] + this.array[2] * M.array[8]]);
     }
-    
+
     /**
      * @author Zachary Wartell
      *
@@ -512,7 +512,7 @@ class Vec3
         /** @todo [STUDENT] implement if/when needed */
         throw new Error("UNIMPLEMENTED FUNCTION");
     }
-    
+
     /**
      * @author Zachary Wartell
      * @description Set this Vec3 coordinates to values in arguments
@@ -547,7 +547,7 @@ class Vec3
         } else
             throw new Error("Unsupported Type");
     }
-    
+
 
     add (v)
     {
@@ -582,6 +582,12 @@ class Vec3
         this.array[0] *= i_mag;
         this.array[1] *= i_mag;
         this.array[2] *= i_mag;
+    }
+
+    cross(v){
+      return[this.array[1] * v.array[2] - this.array[2] * v.array[1],
+              this.array[2] * v.array[0] - this.array[0] * v.array[2],
+              this.array[0] * v.array[1] - this.array[1] * v.array[0]];
     }
 
     /**
@@ -665,7 +671,7 @@ class Vec3
  * @author Zachary Wartell && ...
  *
  * @description This contains misc. code for testing and giving examples of using functions and methods in this file.
- * 
+ *
  * Student Note: The tests are not meant to be comprehensive, but rather only provide examples.
  * Students can add to this function for testing their additional code...
  *
@@ -721,7 +727,7 @@ function Mat3_test()
     var M3 = new Mat3();
     M3.setTranslate([10.0, 15.0]);
     M3.translate([5.0, 5.0]);
-    po_h.multiply(M3);    
+    po_h.multiply(M3);
 
     console.assert(equalfd(po_h.x, 15) && equalfd(po_h.y, 20));
 

@@ -18,13 +18,18 @@ function main(){
     ];
 
     var rotAngle = 90;
+    var cameraPos = 0.0;
+
+    var eye = new Vec3([0.0,0.0,1.0]);
+    var center = new Vec3([0.0,0.0,0.0]);
+    var up = new Vec3([0.0,1.0,0.0]);
 
     var viewMatrix, projectionMatrix, modelMatrix;
     var modelViewMatrixLoc, projectionMatrixLoc, modelMatrixLoc;
 
     window.onload = function init(){
         canvas = document.getElementById("gl-canvas"); //get the canvas instance
-        
+
         gl = WebGLUtils.setupWebGL(canvas); //setup the instance
         if ( !gl ) { alert( "WebGL isn't available" ); }
 
@@ -38,7 +43,7 @@ function main(){
         var house = new LoadOBJ("../objects/cat.obj");
         var objurl = house.loadMeshDataTriangle();
         objurl = objurl.responseText // get the text from the ajax response
-        
+
         data = ObjLoader.domToMesh("house", objurl, true);
         pointsArray = data[1];
         normalsArray = data[2];
@@ -47,7 +52,7 @@ function main(){
         var vBufferId = gl.createBuffer();
         gl.bindBuffer( gl.ARRAY_BUFFER, vBufferId );
         gl.bufferData( gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW )
-        
+
         var vPosition = gl.getAttribLocation( program, "vPosition" );
         gl.vertexAttribPointer( vPosition, 3, gl.FLOAT, false, 0, 0 );
         gl.enableVertexAttribArray( vPosition );
@@ -67,7 +72,7 @@ function main(){
         var nPosition = gl.getAttribLocation( program, "nPosition" );
         gl.vertexAttribPointer( nPosition, 3, gl.FLOAT, false, 0, 0 );
         gl.enableVertexAttribArray( nPosition );
-        
+
         render();
 
     }
@@ -76,6 +81,7 @@ function main(){
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         rotAngle += 0.1;
+        cameraPos += 0.01;
 
         modelMatrix = new Mat4();
         modelMatrix.translate([0.0,-8.0,-50.0])
@@ -87,7 +93,7 @@ function main(){
         viewMatrix.lookAt(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
         projectionMatrix = new Mat4();
-        projectionMatrix.setPerspective(80, 1, 0.0001, 10);
+        projectionMatrix.setPerspective(80, canvas.width/canvas.height, 0, 10);
 
         gl.uniformMatrix4fv(modelViewMatrixLoc, false, viewMatrix.array);
         gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix.array);
@@ -127,17 +133,17 @@ function main(){
     }
 
     function normalize( u, excludeLastComponent )
-    { 
+    {
         if ( excludeLastComponent ) {
             var last = u.pop();
         }
-    
+
         var len = length( u );
 
         if ( !isFinite(len) ) {
             throw "normalize: vector " + u + " has zero length";
         }
-    
+
         for ( var i = 0; i < u.length; ++i ) {
             u[i] /= len;
         }
@@ -145,7 +151,7 @@ function main(){
         if ( excludeLastComponent ) {
             u.push( last );
         }
-            
+
         return u;
     }
 

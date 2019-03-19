@@ -826,7 +826,7 @@ class Mat4
      *
      */
     invert()
-    {   
+    {
         this.setInverseOf(this);
     }
 
