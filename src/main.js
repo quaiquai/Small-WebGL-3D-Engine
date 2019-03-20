@@ -33,11 +33,56 @@ function main(){
     var translatingFactorX = 0.0;
     var translatingFactorZ = 1.0;
 
+    var x = 0;
+    var y = 0;
+
+    var direction = [0.0, 0.0];
+    var lastX, lastY = 100.0;
+
+    var movement = false;
+
+
     window.onload = function init(){
         canvas = document.getElementById("gl-canvas"); //get the canvas instance
+        var factor = 100 / canvas.height;
+        console.log(factor)
 
         gl = WebGLUtils.setupWebGL(canvas); //setup the instance
         if ( !gl ) { alert( "WebGL isn't available" ); }
+
+        canvas.requestPointerLock = canvas.requestPointerLock ||canvas.mozRequestPointerLock;
+        document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
+        canvas.onclick = function() {
+          canvas.requestPointerLock();
+        };
+
+        // pointer lock event listeners
+        // Hook pointer lock state change events for different browsers
+        document.addEventListener('pointerlockchange', lockChangeAlert, false);
+        document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+
+        function lockChangeAlert() {
+          if (document.pointerLockElement === canvas || document.mozPointerLockElement === canvas) {
+            console.log('The pointer lock status is now locked');
+            document.addEventListener("mousemove", updatePosition, false);
+          } else {
+            console.log('The pointer lock status is now unlocked');
+            //document.removeEventListener("mousemove", updatePosition, false);
+          }
+        }
+
+        function updatePosition(e){
+            x = -e.movementX;
+            y = -e.movementY;
+            console.log(x,y)
+
+            var dx = factor * (x);
+            var dy = factor * (y);
+
+            direction[1] = dx;
+            direction[0] = dy;
+            movement = true;
+        }
 
         gl.viewport( 0, 0, canvas.width, canvas.height ); //set the instance view
         gl.clearColor( 0.0, 0.0, 0.0, 1.0 ); //set clear color of canvas
@@ -204,6 +249,19 @@ function main(){
         else if(movingRight == true){
           viewMatrix.translate([translatingFactorX, 0.0, 0.0]);
         }
+
+        if (movement == true){
+          viewMatrix.rotate(direction[0], 1.0, 0.0, 0.0);
+          viewMatrix.rotate(direction[1], 0.0, 1.0, 0.0);
+          movement = false;
+        }
+
+        // if (lastX != x && lastY != y){
+        //   viewMatrix.rotate(direction[0], 1.0, 0.0, 0.0);
+        //   viewMatrix.rotate(direction[1], 0.0, 1.0, 0.0);
+        //   lastX = x;
+        //   lastY = y;
+        // }
 
         gl.uniformMatrix4fv(modelViewMatrixLoc, false, viewMatrix.array);
         gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix.array);
