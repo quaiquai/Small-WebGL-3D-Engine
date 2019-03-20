@@ -46,8 +46,8 @@ main()
 
     float light = dot(normal, u_reverseLightDirection);
 
-    //gl_FragColor = u_color; //load the color passed in
-    gl_FragColor = texture2D(u_texture, v_texCords); //load the texture
+    gl_FragColor = u_color; //load the color passed in
+    //gl_FragColor = texture2D(u_texture, v_texCords); //load the texture
 
     // Lets multiply just the color portion (not the alpha)
     // by the light

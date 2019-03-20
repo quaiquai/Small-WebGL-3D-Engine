@@ -37,17 +37,17 @@ class ObjLoader{
 				// v -1.000000 1.000000 1.000000
 				// vt 0.000000 0.666667
 				// vn 0.000000 0.000000 -1.000000
+				// HAVE TO CHANGE COORDS SHIFTING BASED ON OBJ PASSED IN (CURRENTLY HAVE TO CHANGE TO DOUBLE SHIFT FOR CAT OBJ)
 				case "v":
-
 					switch(line.charAt(1)){
 						case " ":
-						 	itm = line.split(" "); itm.shift(); itm.shift();
+						 	itm = line.split(" "); itm.shift();
 							cVert.push(parseFloat(itm[0]) , parseFloat(itm[1]) , parseFloat(itm[2]) ); break;		//VERTEX
 						case "t":
 							itm = line.split(" "); itm.shift();
 							cUV.push( parseFloat(itm[0]) , parseFloat(itm[1]) );	break;							//UV
 						case "n":
-							itm = line.split(" "); itm.shift(); 
+							itm = line.split(" "); itm.shift();
 							cNorm.push( parseFloat(itm[0]) , parseFloat(itm[1]) , parseFloat(itm[2]) ); break;	//NORMAL
 					}
 				break;

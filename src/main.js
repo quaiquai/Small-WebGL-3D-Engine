@@ -28,6 +28,11 @@ function main(){
     var modelViewMatrixLoc, projectionMatrixLoc, modelMatrixLoc;
     var textureCordsLoc, reverseLightDirectionLocation, colorLocation;
 
+    var movingForward, movingBack, movingLeft, movingRight;
+
+    var translatingFactorX = 0.0;
+    var translatingFactorZ = 1.0;
+
     window.onload = function init(){
         canvas = document.getElementById("gl-canvas"); //get the canvas instance
 
@@ -41,7 +46,7 @@ function main(){
         program = initShaders(gl, "vertex-shader", "fragment-shader");
         gl.useProgram(program);
 
-        var house = new LoadOBJ("../objects/cat.obj"); //create a new object to parse and render
+        var house = new LoadOBJ("../objects/The City.obj"); //create a new object to parse and render
         var objurl = house.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
         objurl = objurl.responseText // get the text from the ajax response
 
@@ -51,7 +56,8 @@ function main(){
         normalsArray = data[2]; //normals of the model
         indexArray = data[0]; //indices of the model
         texCoordsArray = data[3]; // texture/UV of the model
-        console.log(pointsArray)
+        // Test the obj data coming in to make sure shifts arnt needed
+        //console.log(pointsArray, normalsArray, indexArray, texCoordsArray)
 
         var vBufferId = gl.createBuffer();
         gl.bindBuffer( gl.ARRAY_BUFFER, vBufferId );
@@ -104,33 +110,100 @@ function main(){
           gl.generateMipmap(gl.TEXTURE_2D);
         });
 
+        viewMatrix = new Mat4();
+        viewMatrix.lookAt(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
+        modelMatrix = new Mat4();
+        modelMatrix.translate([0.0,-120.0,-500.0])
+        modelMatrix.scale([0.5,0.5,0.5])
+        modelMatrix.rotate(90, 0.0, 1.0, 0.0)
 
+        projectionMatrix = new Mat4();
+        projectionMatrix.setPerspective(80, canvas.width/canvas.height, 0, 10);
 
         render();
 
     }
 
     function render(){
+
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        ////////////////////////////////
+        //keyboard movement controls could probably be done better and more efficiently
+        ////////////////////////////////
+        //Detect that the keys are pressed and change their state to true for movement.
+        document.onkeydown = function(ev){
+            switch(ev.keyCode)
+            {
+                case 38:
+                movingForward = true;
+                translatingFactorZ += 0.1;
+                break;
+                case 37:
+                movingRight = true;
+                translatingFactorX += 0.1;
+                break;
+                case 39:
+                movingLeft = true;
+                translatingFactorX -= 0.1;
+                break;
+                case 40:
+                movingBack = true;
+                translatingFactorZ -= 0.1;
+                break;
+                default:
+                break;
+            }
+          };
+        //detect that the movement has stopped and reset the translation factor back to 0.0 for next movement to have correct calc
+        document.onkeyup = function(ev){
+            switch(ev.keyCode)
+            {
+                case 38:
+                movingForward = false;
+                translatingFactorZ = 0.0;
+                break;
+                case 37:
+                movingRight = false;
+                translatingFactorX = 0.0;
+                break;
+                case 39:
+                movingLeft= false;
+                translatingFactorX = 0.0;
+                break;
+                case 40:
+                movingBack = false;
+                translatingFactorZ = 0.0;
+                break;
+                default:
+                break;
+            }
+          };
+
+        //incremental angles to be used for auto modelMatrix rotations
         rotAngle += 0.5;
         cameraPos += 0.01;
 
-        gl.uniform3fv(reverseLightDirectionLocation, normalize([0.5, 0.7, 1]));
-        gl.uniform4fv(colorLocation, [0.2, 1, 0.2, 1]); // green
+        gl.uniform3fv(reverseLightDirectionLocation, normalize([0.5, 0.7, 1])); //light direction (currently upper right)
+        gl.uniform4fv(colorLocation, [0.2, 1, 0.2, 1]); // green color when active
 
-        modelMatrix = new Mat4();
-        modelMatrix.translate([0.0,-8.0,-50.0])
-        // modelMatrix.scale([0.5,0.5,0.5])
-        modelMatrix.rotate(90, 1.0, 0.0, 0.0)
-        modelMatrix.rotate(rotAngle, 0.0,0.0,1.0)
+        //modelMatrix.rotate(rotAngle, 0.0,0.0,1.0)
 
-        viewMatrix = new Mat4();
-        viewMatrix.lookAt(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
-        projectionMatrix = new Mat4();
-        projectionMatrix.setPerspective(80, canvas.width/canvas.height, 0, 10);
+        // When movement is detected, the camera is translated from current position
+        // in the direction indicated by the variable and its factor
+        if(movingForward == true){
+          viewMatrix.translate([0.0, 0.0, translatingFactorZ]);
+        }
+        else if(movingBack == true){
+          viewMatrix.translate([0.0, 0.0, translatingFactorZ]);
+        }
+        else if(movingLeft == true){
+          viewMatrix.translate([translatingFactorX, 0.0, 0.0]);
+        }
+        else if(movingRight == true){
+          viewMatrix.translate([translatingFactorX, 0.0, 0.0]);
+        }
 
         gl.uniformMatrix4fv(modelViewMatrixLoc, false, viewMatrix.array);
         gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix.array);
