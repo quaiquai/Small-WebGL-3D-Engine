@@ -26,6 +26,7 @@ function main(){
 
     var viewMatrix, projectionMatrix, modelMatrix;
     var modelViewMatrixLoc, projectionMatrixLoc, modelMatrixLoc;
+    var textureCordsLoc, reverseLightDirectionLocation, colorLocation;
 
     window.onload = function init(){
         canvas = document.getElementById("gl-canvas"); //get the canvas instance
@@ -40,14 +41,17 @@ function main(){
         program = initShaders(gl, "vertex-shader", "fragment-shader");
         gl.useProgram(program);
 
-        var house = new LoadOBJ("../objects/cat.obj");
-        var objurl = house.loadMeshDataTriangle();
+        var house = new LoadOBJ("../objects/cat.obj"); //create a new object to parse and render
+        var objurl = house.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
         objurl = objurl.responseText // get the text from the ajax response
 
+        //Get the model information from the string from .obj
         data = ObjLoader.domToMesh("house", objurl, true);
-        pointsArray = data[1];
-        normalsArray = data[2];
-        indexArray = data[0];
+        pointsArray = data[1]; //vertices of the model
+        normalsArray = data[2]; //normals of the model
+        indexArray = data[0]; //indices of the model
+        texCoordsArray = data[3]; // texture/UV of the model
+        console.log(pointsArray)
 
         var vBufferId = gl.createBuffer();
         gl.bindBuffer( gl.ARRAY_BUFFER, vBufferId );
@@ -64,6 +68,8 @@ function main(){
         modelMatrixLoc = gl.getUniformLocation(program, "modelMatrix");
         modelViewMatrixLoc = gl.getUniformLocation( program, "viewMatrix" );
         projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+        reverseLightDirectionLocation = gl.getUniformLocation(program, "u_reverseLightDirection");
+        colorLocation = gl.getUniformLocation(program, "u_color");
 
         var nBufferId = gl.createBuffer();
         gl.bindBuffer( gl.ARRAY_BUFFER, nBufferId );
@@ -73,6 +79,34 @@ function main(){
         gl.vertexAttribPointer( nPosition, 3, gl.FLOAT, false, 0, 0 );
         gl.enableVertexAttribArray( nPosition );
 
+        var tBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW);
+
+        textureCordsLoc = gl.getAttribLocation(program, "tPosition");
+        gl.vertexAttribPointer(textureCordsLoc, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(textureCordsLoc);
+
+        var texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Fill the texture with a 1x1 blue pixel.
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+              new Uint8Array([0, 0, 255, 255]));
+
+        // Asynchronously load an image
+        var image = new Image();
+        image.src = "../textures/Cat_bump.jpg";
+        image.addEventListener('load', function() {
+          // Now that the image has loaded make copy it to the texture.
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+          gl.generateMipmap(gl.TEXTURE_2D);
+        });
+
+
+
+
         render();
 
     }
@@ -80,12 +114,15 @@ function main(){
     function render(){
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        rotAngle += 0.1;
+        rotAngle += 0.5;
         cameraPos += 0.01;
+
+        gl.uniform3fv(reverseLightDirectionLocation, normalize([0.5, 0.7, 1]));
+        gl.uniform4fv(colorLocation, [0.2, 1, 0.2, 1]); // green
 
         modelMatrix = new Mat4();
         modelMatrix.translate([0.0,-8.0,-50.0])
-        modelMatrix.scale([0.5,0.5,0.5])
+        // modelMatrix.scale([0.5,0.5,0.5])
         modelMatrix.rotate(90, 1.0, 0.0, 0.0)
         modelMatrix.rotate(rotAngle, 0.0,0.0,1.0)
 
