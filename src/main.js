@@ -163,6 +163,14 @@ function main(){
         modelMatrix.scale([0.5,0.5,0.5])
         modelMatrix.rotate(90, 0.0, 1.0, 0.0)
 
+
+        // modelMatrix.translate([0.0,-8.0,-50.0])
+        // modelMatrix.scale([0.5,0.5,0.5])
+        // modelMatrix.rotate(90, 1.0, 0.0, 0.0)
+        // modelMatrix.rotate(90, 0.0,0.0,1.0);
+
+
+
         projectionMatrix = new Mat4();
         projectionMatrix.setPerspective(80, canvas.width/canvas.height, 0, 10);
 
@@ -227,27 +235,26 @@ function main(){
           };
 
         //incremental angles to be used for auto modelMatrix rotations
-        rotAngle += 0.5;
+        rotAngle += 0.0000001;
         cameraPos += 0.01;
 
         gl.uniform3fv(reverseLightDirectionLocation, normalize([0.5, 0.7, 1])); //light direction (currently upper right)
         gl.uniform4fv(colorLocation, [0.2, 1, 0.2, 1]); // green color when active
 
-        //modelMatrix.rotate(rotAngle, 0.0,0.0,1.0)
 
         // When movement is detected, the camera is translated from current position
         // in the direction indicated by the variable and its factor
         if(movingForward == true){
-          viewMatrix.translate([0.0, 0.0, translatingFactorZ]);
+          modelMatrix.translate([0.0, 0.0, translatingFactorZ]);
         }
         else if(movingBack == true){
-          viewMatrix.translate([0.0, 0.0, translatingFactorZ]);
+          modelMatrix.translate([0.0, 0.0, translatingFactorZ]);
         }
         else if(movingLeft == true){
-          viewMatrix.translate([translatingFactorX, 0.0, 0.0]);
+          modelMatrix.translate([translatingFactorX, 0.0, 0.0]);
         }
         else if(movingRight == true){
-          viewMatrix.translate([translatingFactorX, 0.0, 0.0]);
+          modelMatrix.translate([translatingFactorX, 0.0, 0.0]);
         }
 
         if (movement == true){
@@ -255,13 +262,6 @@ function main(){
           viewMatrix.rotate(direction[1], 0.0, 1.0, 0.0);
           movement = false;
         }
-
-        // if (lastX != x && lastY != y){
-        //   viewMatrix.rotate(direction[0], 1.0, 0.0, 0.0);
-        //   viewMatrix.rotate(direction[1], 0.0, 1.0, 0.0);
-        //   lastX = x;
-        //   lastY = y;
-        // }
 
         gl.uniformMatrix4fv(modelViewMatrixLoc, false, viewMatrix.array);
         gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix.array);
