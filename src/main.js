@@ -18,11 +18,12 @@ function main(){
     ];
 
     var rotAngle = 90;
-    var cameraPos = 0.0;
 
     var eye = new Vec3([0.0,0.0,1.0]);
     var center = new Vec3([0.0,0.0,0.0]);
     var up = new Vec3([0.0,1.0,0.0]);
+    var cameraPos = new Vec3([0.0, 0.0, 3.0]);
+    var cameraFront = new Vec3([0.0, 0.0, -1.0]);
 
     var viewMatrix, projectionMatrix, modelMatrix;
     var modelViewMatrixLoc, projectionMatrixLoc, modelMatrixLoc;
@@ -72,8 +73,8 @@ function main(){
         }
 
         function updatePosition(e){
-            x = -e.movementX;
-            y = -e.movementY;
+            x = e.movementX;
+            y = e.movementY;
             console.log(x,y)
 
             var dx = factor * (x);
@@ -83,6 +84,58 @@ function main(){
             direction[0] = dy;
             movement = true;
         }
+
+        ////////////////////////////////
+        //keyboard movement controls could probably be done better and more efficiently
+        ////////////////////////////////
+        //Detect that the keys are pressed and change their state to true for movement.
+        document.onkeydown = function(ev){
+            switch(ev.keyCode)
+            {
+                case 38:
+                movingForward = true;
+                translatingFactorZ += 0.1;
+                break;
+                case 37:
+                movingRight = true;
+                translatingFactorX += 0.1;
+                break;
+                case 39:
+                movingLeft = true;
+                translatingFactorX -= 0.1;
+                break;
+                case 40:
+                movingBack = true;
+                translatingFactorZ -= 0.1;
+                break;
+                default:
+                break;
+            }
+          };
+        //detect that the movement has stopped and reset the translation factor back to 0.0 for next movement to have correct calc
+        document.onkeyup = function(ev){
+            switch(ev.keyCode)
+            {
+                case 38:
+                movingForward = false;
+                translatingFactorZ = 0.0;
+                break;
+                case 37:
+                movingRight = false;
+                translatingFactorX = 0.0;
+                break;
+                case 39:
+                movingLeft= false;
+                translatingFactorX = 0.0;
+                break;
+                case 40:
+                movingBack = false;
+                translatingFactorZ = 0.0;
+                break;
+                default:
+                break;
+            }
+          };
 
         gl.viewport( 0, 0, canvas.width, canvas.height ); //set the instance view
         gl.clearColor( 0.0, 0.0, 0.0, 1.0 ); //set clear color of canvas
@@ -156,7 +209,9 @@ function main(){
         });
 
         viewMatrix = new Mat4();
-        viewMatrix.lookAt(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+        viewMatrix.lookAt(cameraPos.array[0], cameraPos.array[1], cameraPos.array[2],
+                          cameraPos.array[0], cameraPos.array[1], cameraPos.array[2] - 3,
+                          0.0, 1.0, 0.0);
 
         modelMatrix = new Mat4();
         modelMatrix.translate([0.0,-120.0,-500.0])
@@ -172,7 +227,7 @@ function main(){
 
 
         projectionMatrix = new Mat4();
-        projectionMatrix.setPerspective(80, canvas.width/canvas.height, 0, 10);
+        projectionMatrix.setPerspective(80, canvas.width/canvas.height, 0, 100);
 
         render();
 
@@ -182,61 +237,10 @@ function main(){
 
         gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        ////////////////////////////////
-        //keyboard movement controls could probably be done better and more efficiently
-        ////////////////////////////////
-        //Detect that the keys are pressed and change their state to true for movement.
-        document.onkeydown = function(ev){
-            switch(ev.keyCode)
-            {
-                case 38:
-                movingForward = true;
-                translatingFactorZ += 0.1;
-                break;
-                case 37:
-                movingRight = true;
-                translatingFactorX += 0.1;
-                break;
-                case 39:
-                movingLeft = true;
-                translatingFactorX -= 0.1;
-                break;
-                case 40:
-                movingBack = true;
-                translatingFactorZ -= 0.1;
-                break;
-                default:
-                break;
-            }
-          };
-        //detect that the movement has stopped and reset the translation factor back to 0.0 for next movement to have correct calc
-        document.onkeyup = function(ev){
-            switch(ev.keyCode)
-            {
-                case 38:
-                movingForward = false;
-                translatingFactorZ = 0.0;
-                break;
-                case 37:
-                movingRight = false;
-                translatingFactorX = 0.0;
-                break;
-                case 39:
-                movingLeft= false;
-                translatingFactorX = 0.0;
-                break;
-                case 40:
-                movingBack = false;
-                translatingFactorZ = 0.0;
-                break;
-                default:
-                break;
-            }
-          };
+
 
         //incremental angles to be used for auto modelMatrix rotations
         rotAngle += 0.0000001;
-        cameraPos += 0.01;
 
         gl.uniform3fv(reverseLightDirectionLocation, normalize([0.5, 0.7, 1])); //light direction (currently upper right)
         gl.uniform4fv(colorLocation, [0.2, 1, 0.2, 1]); // green color when active
@@ -244,24 +248,26 @@ function main(){
 
         // When movement is detected, the camera is translated from current position
         // in the direction indicated by the variable and its factor
+        var cameraSpeed = 0.01;
         if(movingForward == true){
-          modelMatrix.translate([0.0, 0.0, translatingFactorZ]);
+          cameraPos.array[2] -= 0.01;
         }
         else if(movingBack == true){
-          modelMatrix.translate([0.0, 0.0, translatingFactorZ]);
+          viewMatrix.translate([0.0, 0.0, translatingFactorZ]);
         }
         else if(movingLeft == true){
-          modelMatrix.translate([translatingFactorX, 0.0, 0.0]);
+          viewMatrix.translate([translatingFactorX, 0.0, 0.0]);
         }
         else if(movingRight == true){
-          modelMatrix.translate([translatingFactorX, 0.0, 0.0]);
+          viewMatrix.translate([translatingFactorX, 0.0, 0.0]);
         }
 
         if (movement == true){
-          viewMatrix.rotate(direction[0], 1.0, 0.0, 0.0);
+          viewMatrix.rotate(direction[0], 0.0, 0.0, 1.0);
           viewMatrix.rotate(direction[1], 0.0, 1.0, 0.0);
           movement = false;
         }
+
 
         gl.uniformMatrix4fv(modelViewMatrixLoc, false, viewMatrix.array);
         gl.uniformMatrix4fv(projectionMatrixLoc, false, projectionMatrix.array);

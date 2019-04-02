@@ -552,7 +552,9 @@ class Vec3
     add (v)
     {
         /** @todo [STUDENT] implement if/when needed */
-        throw new Error("UNIMPLEMENTED FUNCTION");
+        this.array[0] = this.array[0] + v.array[0];
+        this.array[1] = this.array[1] + v.array[1];
+        this.array[2] = this.array[2] + v.array[2];
     }
 
     sub (v)
