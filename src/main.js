@@ -90,8 +90,7 @@ function main(){
         ////////////////////////////////
         //Detect that the keys are pressed and change their state to true for movement.
         document.onkeydown = function(ev){
-            switch(ev.keyCode)
-            {
+            switch(ev.keyCode){
                 case 38:
                 movingForward = true;
                 translatingFactorZ += 0.1;
@@ -114,8 +113,7 @@ function main(){
           };
         //detect that the movement has stopped and reset the translation factor back to 0.0 for next movement to have correct calc
         document.onkeyup = function(ev){
-            switch(ev.keyCode)
-            {
+            switch(ev.keyCode){
                 case 38:
                 movingForward = false;
                 translatingFactorZ = 0.0;
@@ -250,7 +248,7 @@ function main(){
         // in the direction indicated by the variable and its factor
         var cameraSpeed = 0.01;
         if(movingForward == true){
-          cameraPos.array[2] -= 0.01;
+          viewMatrix.translate([0.0, 0.0, translatingFactorZ]);
         }
         else if(movingBack == true){
           viewMatrix.translate([0.0, 0.0, translatingFactorZ]);
