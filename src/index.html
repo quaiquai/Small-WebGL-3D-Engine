@@ -32,6 +32,7 @@
     <li>The 'step stones' on back wall are generated from scene graph in node.js, trs.js, levels.js (more to be added to create parkour levels)</li>
     <li>The 'step stones' check for collisions when jumped on. You can jump from stone to stone to get higher in the room.</li>
     <li>All objects can be seleceted by clicking on them. Dragging performs a translation of selected object. Backspace will delete selected object.</li>
+    <li>CAT OBJ button will open a new page showing traditional rendering of a cat from a parsed obj file. (couldnt get it to work in path tracer.)</li>
   </ul>
 
   <div id="main">
@@ -40,6 +41,10 @@
 
     <p>
       <button onclick="javascript:ui.selectLight()">Select Light</button>
+      <!-- <button onclick="javascript:ui.addCube()">Add Cube</button> -->
+    </p>
+    <p>
+      <button onclick="location.href='trad.html'">Go to rendering of Cat OBJ</button>
       <!-- <button onclick="javascript:ui.addCube()">Add Cube</button> -->
     </p>
     <audio id="myAudio">
