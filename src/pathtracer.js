@@ -1,4 +1,4 @@
-class RayTracer{
+class PathTracer{
   constructor() {
     var vertices = [
       -1, -1,
@@ -91,5 +91,9 @@ class RayTracer{
     this.tracerProgram = compileShader(tracerVertexSource, makeTracerFragmentSource(objects));
     this.tracerVertexAttribute = gl.getAttribLocation(this.tracerProgram, 'vertex');
     gl.enableVertexAttribArray(this.tracerVertexAttribute);
+  }
+
+  getObjects(){
+    return this.objects;
   }
 }

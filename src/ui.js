@@ -10,6 +10,10 @@ class UI{
     this.renderer.setObjects(this.objects);
   }
 
+  getObjects(){
+    this.renderer.getObjects();
+  }
+
   update(time){
     this.modelview = makeLookAt(eye.elements[0], eye.elements[1], eye.elements[2], eye.elements[0] + at.elements[0], at.elements[1], eye.elements[2]+ at.elements[2], 0, 1, 0);
     this.projection = makePerspective(80, 1, 0.1, 100);
@@ -111,29 +115,11 @@ class UI{
     }
   }
 
-  updateMaterial(){
-    var newMaterial = parseInt(document.getElementById('material').value, 10);
-    if(material != newMaterial) {
-      material = newMaterial;
-      this.renderer.setObjects(this.objects);
-    }
-  }
-
   updateEnvironment(){
     var newEnvironment = parseInt(document.getElementById('environment').value, 10);
     if(environment != newEnvironment) {
       environment = newEnvironment;
       this.renderer.setObjects(this.objects);
     }
-  }
-
-  updateGlossiness(){
-    var newGlossiness = parseFloat(document.getElementById('glossiness').value);
-    if(isNaN(newGlossiness)) newGlossiness = 0;
-    newGlossiness = Math.max(0, Math.min(1, newGlossiness));
-    if(material == MATERIAL_GLOSSY && glossiness != newGlossiness) {
-      this.renderer.pathTracer.sampleCount = 0;
-    }
-    glossiness = newGlossiness;
   }
 }

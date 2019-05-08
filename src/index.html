@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html><head>
-  <title>WebGl Ray Tracer</title>
+  <title>WebGl Path Tracer</title>
   <script type="text/javascript" src="sylvester.src.js"></script>
   <script type="text/javascript" src="glUtils.js"></script>
   <script type="text/javascript" src="main.js"></script>
   <script type="text/javascript" src="ui.js"></script>
   <script type="text/javascript" src="renderer.js"></script>
-  <script type="text/javascript" src="RayTracer.js"></script>
+  <script type="text/javascript" src="pathtracer.js"></script>
   <script type="text/javascript" src="objLoader.js"></script>
   <script type="text/javascript" src="loadOBJ.js"></script>
   <script type="text/javascript" src="light.js"></script>
   <script type="text/javascript" src="cube.js"></script>
-
+  <script type="text/javascript" src="platform.js"></script>
+  <script type="text/javascript" src="levels.js"></script>
+  <script type="text/javascript" src="trs.js"></script>
+  <script type="text/javascript" src="node.js"></script>
   <script type="text/javascript" src="../math/Mat2.js"></script>
   <script type="text/javascript" src="../math/Mat3.js"></script>
   <script type="text/javascript" src="../math/Mat4.js"></script>
@@ -20,14 +23,15 @@
 
 
 </head><body>
-  <h1>WebGl Ray Tracer</h1>
+  <h1>WebGl Path Tracer</h1>
 
   <ul>
-    <li>Add an object using the "Add Sphere" or "Add Cube" buttons</li>
-    <li>Select an object by clicking on it</li>
-    <li>Move the selection along the face of its selection box by dragging around on that face</li>
-    <li>Delete the selection using the backspace key</li>
-    <li>Rotate the camera by dragging the background</li>
+    <li>The Camera movement and be controlled via 'arrow keys' or 'wasd'. Up arrow/w and Down arrow/s move forward and back. Left/a and Right/d arrow rotate the camera round xz axis.</li>
+    <li>SpaceBar will allow you to jump</li>
+    <li>The tunnel in the center is to act as a Non-Euclidean tunnel with far plane streatched about z axis</li>
+    <li>The 'step stones' on back wall are generated from scene graph in node.js, trs.js, levels.js (more to be added to create parkour levels)</li>
+    <li>The 'step stones' check for collisions when jumped on. You can jump from stone to stone to get higher in the room.</li>
+    <li>All objects can be seleceted by clicking on them. Dragging performs a translation of selected object. Backspace will delete selected object.</li>
   </ul>
 
   <div id="main">
@@ -36,36 +40,18 @@
 
     <p>
       <button onclick="javascript:ui.selectLight()">Select Light</button>
-      <button onclick="javascript:ui.addSphere()">Add Sphere</button>
-      <button onclick="javascript:ui.addCube()">Add Cube</button>
+      <!-- <button onclick="javascript:ui.addCube()">Add Cube</button> -->
     </p>
+    <audio id="myAudio">
+        <source src="landed.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
 
     <p>
-      <b>Material:</b>
-      <select id="material">
-        <option value="0" selected>Diffuse</option>
-        <option value="1">Mirror</option>
-        <option value="2">Glossy</option>
-      </select>
-      <span id="glossiness-factor">
-        <br>with glossiness factor: 0 &lt; <input id="glossiness" value="0.6"> &lt; 1
-      </span>
-      <br>
-
       <b>Environment:</b>
       <select id="environment">
-        <option value="0" selected>Cornell Box - Yellow and Blue</option>
-        <option value="1">Cornell Box - Red and Green</option>
+        <option value="0" selected>Steps and Tunnel</option>
       </select>
-    </p>
-
-    <p>
-      <b>Load preset scene:</b>
-      <br><button onclick="javascript:ui.setObjects(makeSpherePyramid())">Sphere Pyramid</button>
-      <br><button onclick="javascript:ui.setObjects(makeSphereAndCube())">Sphere and Cube</button>
-      <br><button onclick="javascript:ui.setObjects(makeCubeAndSpheres())">Cube and Spheres</button>
-      <br><button onclick="javascript:ui.setObjects(makeTableAndChair())">Table and Chair</button>
-      <br><button onclick="javascript:ui.setObjects(makeStacks())">Stacks</button>
     </p>
   </div>
 

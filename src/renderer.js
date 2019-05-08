@@ -33,7 +33,7 @@ class Renderer{
 
     this.objects = [];
     this.selectedObject = null;
-    this.pathTracer = new RayTracer();
+    this.pathTracer = new PathTracer();
   }
 
    setObjects(objects){
@@ -42,11 +42,13 @@ class Renderer{
     this.pathTracer.setObjects(objects);
   }
 
+  getObjects(){
+    this.pathTracer.getObjects();
+  }
+
    update(modelviewProjection, time){
-    var jitter = Matrix.Translation(Vector.create([Math.random() * 2 - 1, Math.random() * 2 - 1, 0]).multiply(1 / 512));
-    var inverse = jitter.multiply(modelviewProjection).inverse();
     this.modelviewProjection = modelviewProjection;
-    this.pathTracer.update(inverse, time);
+    this.pathTracer.update(modelviewProjection.inverse(), time);
   }
 
    render(){

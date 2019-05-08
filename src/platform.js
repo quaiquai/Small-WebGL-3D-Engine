@@ -1,11 +1,11 @@
-class Cube{
-  constructor(minCorner, maxCorner, cubeID){
+class Platform{
+  constructor(minCorner, maxCorner, platformID){
     this.minCorner = minCorner;
     this.maxCorner = maxCorner;
-    this.cubeID = cubeID;
-    this.minStr = 'cubeMin' + cubeID;
-    this.maxStr = 'cubeMax' + cubeID;
-    this.intersectStr = 'tCube' + cubeID;
+    this.platformID = platformID;
+    this.minStr = 'platformMin' + platformID;
+    this.maxStr = 'platformMax' + platformID;
+    this.intersectStr = 'tplatform' + platformID;
     this.temporaryTranslation = Vector.create([0, 0, 0]);
   }
 
@@ -30,7 +30,7 @@ class Cube{
 
   getIntersectCode(){
     return '' +
-  ' vec2 ' + this.intersectStr + ' = intersectCubeAberraion(origin, ray, ' + this.minStr + ', ' + this.maxStr + ');';
+  ' vec2 ' + this.intersectStr + ' = intersectCube(origin, ray, ' + this.minStr + ', ' + this.maxStr + ');';
   }
 
   getShadowTestCode(){
