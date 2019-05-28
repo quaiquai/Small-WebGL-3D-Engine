@@ -270,7 +270,7 @@ var zoomZ = 4.5;
 var maxjump;
 var eye = Vector.create([0, 1, 0]);
 var at = Vector.create([0, 0, 0]);
-var light = Vector.create([0.4, 0.5, -0.6]);;
+var light = Vector.create([0.4, 0.5, -0.6]);
 
 var nextObjectId = 0;
 var objectsList;
