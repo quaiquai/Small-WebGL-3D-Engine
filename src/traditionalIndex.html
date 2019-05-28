@@ -15,8 +15,7 @@ uniform mat4 projectionMatrix;
 uniform mat4 modelMatrix;
 varying vec3 v_normal;
 varying vec2 v_texCords;
-void main()
-{
+void main(){
 gl_Position =  projectionMatrix * viewMatrix * modelMatrix * vec4(vPosition, 1.0); // convert back to homogeneous coordinates;
 v_normal = nPosition;
 v_texCords = tPosition;
@@ -31,8 +30,7 @@ uniform vec4 u_color;
 uniform sampler2D u_texture;
 uniform vec3 u_reverseLightDirection;
 void
-main()
-{
+main(){
     // because v_normal is a varying it's interpolated
     // we it will not be a uint vector. Normalizing it
     // will make it a unit vector again
@@ -46,20 +44,25 @@ main()
 }
 </script>
 
-
-<script type="text/javascript" src="../utils/webgl-utils.js"></script>
-<script type="text/javascript" src="../utils/initShaders.js"></script>
+<!-- BODY OF ENGINE AND HELPER CLASSES -->
 <script type="text/javascript" src="./loadOBJ.js"></script>
 <script type="text/javascript" src="./trad.js"></script>
 <script type="text/javascript" src="./objLoader.js"></script>
+
+<!-- MATH SCRIPTS AND FILES -->
 <script type="text/javascript" src="../math/Mat2.js"></script>
 <script type="text/javascript" src="../math/Mat3.js"></script>
 <script type="text/javascript" src="../math/Mat4.js"></script>
+
+<!-- UTIL FILES FOR SYSTEM FUNCTION -->
+<script type="text/javascript" src="../utils/webgl-utils.js"></script>
+<script type="text/javascript" src="../utils/initShaders.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.js"></script>
 <script
   src="http://code.jquery.com/jquery-3.3.1.js"
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
-  crossorigin="anonymous"></script>
+  crossorigin="anonymous">
+</script>
 
 <body>
 <canvas id="gl-canvas" width="1024" height="784">

@@ -1,9 +1,14 @@
 class UI{
+  // constructor for the UI class
   constructor(){
     this.renderer = new Renderer();
     this.moving = false;
   }
-
+  /**
+   * set the list of objects that will be used in the scene to objects passed in
+   * the light is the first object. send objects to Renderer
+   * @param {Array} objects Array ob objects in the scene
+   */
   setObjects(objects){
     this.objects = objects;
     this.objects.splice(0, 0, new Light());
