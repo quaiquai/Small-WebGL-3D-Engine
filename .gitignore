@@ -1,0 +1,5 @@
+#ignore all DS_Store
+*.DS_Store
+
+#ignore vs code files
+*.vs
