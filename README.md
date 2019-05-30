@@ -1,4 +1,4 @@
 # Project LINK
 Small WebGL engine in the making
 
-![alt text](https://raw.githubusercontent.com/quiaquai/Project-link/master/images/pathTraceRendering.PNG)
+![alt text](./images/pathTraceRendering.PNG)
