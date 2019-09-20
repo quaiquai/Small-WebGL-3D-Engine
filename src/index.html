@@ -13,17 +13,22 @@
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec2 coordinates;
 uniform vec2 u_translation;
+uniform vec4 u_color;
+varying vec4 v_color;
 
 void main(){
 gl_Position = vec4(coordinates + u_translation, 0.0, 1.0);
 gl_PointSize = 10.0;
+v_color = u_color;
 }
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
+varying vec4 v_color;
 void main(){
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    // gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    gl_FragColor = v_color;
 }
 </script>
 
@@ -44,7 +49,7 @@ void main(){
     gl.enable(gl.DEPTH_TEST);
 
     /*==========Defining and storing the geometry=======*/
-    var particle = new ParticleStream(0, 0, 100, Math.random() * 360, Math.random() * 20, 1);
+    var particle = new ParticleStream(0, 0, 2, 1000);
     console.log(particle)
 
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
@@ -52,6 +57,7 @@ void main(){
 
     //get uniform location for vertex shader
     var u_translation = gl.getUniformLocation(program, "u_translation");
+    var u_color = gl.getUniformLocation(program, "u_color");
 
     // Create an empty buffer object to store the vertex buffer
     //Bind appropriate array buffer to it
@@ -79,7 +85,7 @@ void main(){
     render()
 
     function render(now){
-      now = 0.001;
+      now = 0.01;
 
       // Clear the canvas AND the depth buffer.
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -94,6 +100,7 @@ void main(){
       for (let i = 0; i < particle.particleCount; i++){
         particle.particleList[i].update(now)
         gl.uniform2fv(u_translation, [particle.particleList[i].position.x, particle.particleList[i].position.y])
+        gl.uniform4fv(u_color, particle.particleList[i].color);
         gl.drawArrays(gl.POINTS, i, 1);
       }
       requestAnimationFrame(render)
