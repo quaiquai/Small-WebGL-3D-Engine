@@ -19,10 +19,18 @@ class Particle{
 
   update(dt){
     this.lifeTime -= dt;
+
     if(this.lifeTime > 0){
       this.position.x += this.velocity.x * dt * 0.03;
       this.position.y += this.velocity.y * dt * 0.03;
       this.color[3] = this.lifeTime;
+    }
+
+    if(this.lifeTime <= 0){
+      this.position.x = 0;
+      this.position.y = 0;
+      this.color[3] = 1.0;
+      this.lifeTime = 2.0;
     }
   }
 }

@@ -9,4 +9,8 @@ class ParticleStream{
       this.particleStreamVerts.push(x, y);
     }
   }
+
+  streamUpdate(delta){
+    
+  }
 }
