@@ -79,9 +79,17 @@ class Particle{
         this.velocity.y *= this.restitution;
         this.position.y = -1;
     }
+    if (this.position.y > 1) {
+        this.velocity.y *= this.restitution;
+        this.position.y = 1;
+    }
     if (this.position.x > 1) {
         this.velocity.x *= this.restitution;
         this.position.x = 1;
+    }
+    if (this.position.x < -1) {
+        this.velocity.x *= this.restitution;
+        this.position.x = -1;
     }
 
 
