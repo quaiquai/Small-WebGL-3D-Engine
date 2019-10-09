@@ -55,13 +55,13 @@ class Particle{
     var ay = ag + (Fy / this.mass);
 
     // Integrate to get velocity
-    this.velocity.x += ax*(1/60);
-    this.velocity.y += ay*(1/60);
+    this.velocity.x += ax*(1/40);
+    this.velocity.y += ay*(1/40);
 
     // Integrate to get position
     //multiply by the framerate to change speed
-    this.position.x += this.velocity.x*(1/2000);
-    this.position.y += -(this.velocity.y*(1/2000));
+    this.position.x += this.velocity.x*(1/1000);
+    this.position.y += -(this.velocity.y*(1/1000));
 
     // if(this.lifeTime > 0){
     //   this.position.x += this.velocity.x * dt * 0.03;

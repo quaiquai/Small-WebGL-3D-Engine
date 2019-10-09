@@ -86,7 +86,7 @@ void main(){
     gl.enable(gl.DEPTH_TEST);
 
     /*==========Defining and storing the geometry=======*/
-    var particle = new ParticleStream(0, 0, 10, 10);
+    var particle = new ParticleStream(0, 0, 10, 100);
 
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
