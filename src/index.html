@@ -8,6 +8,37 @@
 
 <head>
 <title>Project LINK</title>
+<style>
+.slider {
+  -webkit-appearance: none;
+  width: 25%;
+  height: 15px;
+  border-radius: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+</style>
 </head>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
@@ -32,14 +63,20 @@ void main(){
 }
 </script>
 
-<body>
-  <canvas id="gl-canvas" width="1024" height="784">
-    Oops ... your browser doesn't support the HTML5 canvas element
-  </canvas>
+<body bgcolor="#afafaf">
+  <div>
+    <canvas id="gl-canvas" width="1024" height="784">
+      Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+  </div>
+  <div class="slidecontainer">
+    <input type="range" min="1" max="20" value="5" class="slider" id="speedValue">
+  </div>
 
   <script>
     /*================Creating a canvas=================*/
     var canvas = document.getElementById("gl-canvas"); //get the canvas instance
+    var slider = document.getElementById("speedValue");
 
     var gl = WebGLUtils.setupWebGL(canvas); //setup the instance
     if ( !gl ) { alert( "WebGL isn't available" ); }
@@ -49,7 +86,7 @@ void main(){
     gl.enable(gl.DEPTH_TEST);
 
     /*==========Defining and storing the geometry=======*/
-    var particle = new ParticleStream(0, 0, 10, 200);
+    var particle = new ParticleStream(0, 0, 10, 10);
 
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);

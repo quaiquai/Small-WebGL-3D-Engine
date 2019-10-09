@@ -5,7 +5,6 @@ class Particle{
   // But when updating the particle each frame, it’s easier to work with a velocity vector.
 
   //Much help in physics calculations from: https://burakkanber.com/blog/modeling-physics-javascript-gravity-and-drag/
-  //TODO" handle collisions
   constructor(x, y, l, angle, speed, color){
     this.position = {
       x: x,
@@ -97,8 +96,8 @@ class Particle{
       this.position.x = 0;
       this.position.y = 0;
       this.velocity = {
-        x: (this.s * Math.cos(this.angl)),
-        y: -(this.s * Math.sin(this.angl))
+        x: (slider.value * Math.cos(this.angl)),
+        y: -(slider.value * Math.sin(this.angl))
       }
       this.color[3] = 1.0;
       this.lifeTime = Math.random() * 5;
