@@ -83,6 +83,7 @@ void main(){
     var canvas = document.getElementById("gl-canvas"); //get the canvas instance
     var slider = document.getElementById("speedValue");
     var sliderRho = document.getElementById("rhoDensity");
+    var mouseyNDC, mousexNDC;
 
 
     var gl = WebGLUtils.setupWebGL(canvas); //setup the instance
@@ -93,7 +94,7 @@ void main(){
     gl.enable(gl.DEPTH_TEST);
 
     /*==========Defining and storing the geometry=======*/
-    var particle = new ParticleStream(-0.1, 0.9, 10, 100);
+    var particle = new ParticleStream(-0.1, 0.9, 10, 10000);
 
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
@@ -121,6 +122,13 @@ void main(){
     gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(coord);
 
+    window.onmousemove = function(event){
+      var mousex = event.clientX;
+      var mousey = event.clientY;
+      mousexNDC = (mousex / canvas.clientWidth) * 2 - 1;
+      mouseyNDC = (1 - (mousey / canvas.clientHeight)) * 2 - 1;
+    }
+
     /*============= Drawing the primitive ===============*/
     // Draw the triangle
     // gl.drawArrays(gl.POINTS, 0, particle.particleCount);
@@ -142,7 +150,7 @@ void main(){
 
       for (let i = 0; i < particle.particleCount; i++){
         particle.particleList[i].update(now);
-        particle.particleList[i].checkCollision();
+        particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
         gl.uniformMatrix3fv(u_translation, false, particle.particleList[i].translation.array);
         gl.uniform4fv(u_color, particle.particleList[i].color);
         gl.drawArrays(gl.POINTS, i, 1);

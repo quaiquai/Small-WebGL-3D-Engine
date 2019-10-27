@@ -96,7 +96,12 @@ class Particle{
     }
   }
 
-  checkCollision(){
+  checkCollision(mouseyNDC, mousexNDC){
+    if (this.relation.y + this.position.y < mouseyNDC + 0.05 && this.relation.x + this.position.x > mousexNDC - 0.05 && this.relation.y + this.position.y > mouseyNDC-0.05
+      && this.relation.x + this.position.x < mousexNDC + 0.05){
+      this.velocity.y *= this.restitution;
+      this.position.y = -this.relation.y + mouseyNDC + 0.05;
+    }
     if (this.relation.y + this.position.y < -1) { //difference of the stream position and the distance traveled from source
         this.velocity.y *= this.restitution;
         this.position.y = -this.relation.y - 1; //find the distance from bottom of canvas to source to reposition after collision
