@@ -3,6 +3,8 @@
 <!-- UTIL FILES FOR SYSTEM FUNCTION -->
 <script type="text/javascript" src="../utils/webgl-utils.js"></script>
 <script type="text/javascript" src="../utils/initShaders.js"></script>
+<script type="text/javascript" src="../math/Mat3.js"></script>
+
 <script type="text/javascript" src="particleStream.js"></script>
 <script type="text/javascript" src="particle.js"></script>
 
@@ -42,14 +44,14 @@
 </head>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
-attribute vec2 coordinates;
-uniform vec2 u_translation;
+attribute vec3 coordinates;
+uniform mat3 u_translation;
 uniform vec4 u_color;
 varying vec4 v_color;
 
 void main(){
-gl_Position = vec4(coordinates + u_translation, 0.0, 1.0);
-gl_PointSize = 10.0;
+gl_Position = vec4((u_translation*coordinates).xy, 0.0, 1.0);
+gl_PointSize = 5.0;
 v_color = u_color;
 }
 </script>
@@ -71,12 +73,17 @@ void main(){
   </div>
   <div class="slidecontainer">
     <input type="range" min="1" max="20" value="5" class="slider" id="speedValue">
+    <label for="speedValue">Speed</label>
+    <input type="range" min="1" max="100" value="5" class="slider" id="rhoDensity">
+    <label for="rhoValue">rho</label>
   </div>
 
   <script>
     /*================Creating a canvas=================*/
     var canvas = document.getElementById("gl-canvas"); //get the canvas instance
     var slider = document.getElementById("speedValue");
+    var sliderRho = document.getElementById("rhoDensity");
+
 
     var gl = WebGLUtils.setupWebGL(canvas); //setup the instance
     if ( !gl ) { alert( "WebGL isn't available" ); }
@@ -86,7 +93,7 @@ void main(){
     gl.enable(gl.DEPTH_TEST);
 
     /*==========Defining and storing the geometry=======*/
-    var particle = new ParticleStream(0, 0, 10, 100);
+    var particle = new ParticleStream(-0.1, 0.9, 10, 100);
 
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
@@ -111,12 +118,12 @@ void main(){
     // Enable the attribute
     gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
     var coord = gl.getAttribLocation(program, "coordinates");
-    gl.vertexAttribPointer(coord, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(coord);
 
     /*============= Drawing the primitive ===============*/
     // Draw the triangle
-    gl.drawArrays(gl.POINTS, 0, particle.particleCount);
+    // gl.drawArrays(gl.POINTS, 0, particle.particleCount);
     var now = 0;
     render()
 
@@ -135,7 +142,8 @@ void main(){
 
       for (let i = 0; i < particle.particleCount; i++){
         particle.particleList[i].update(now);
-        gl.uniform2fv(u_translation, [particle.particleList[i].position.x, particle.particleList[i].position.y])
+        particle.particleList[i].checkCollision();
+        gl.uniformMatrix3fv(u_translation, false, particle.particleList[i].translation.array);
         gl.uniform4fv(u_color, particle.particleList[i].color);
         gl.drawArrays(gl.POINTS, i, 1);
       }

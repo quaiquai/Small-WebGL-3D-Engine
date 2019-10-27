@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<!-- UTIL FILES FOR SYSTEM FUNCTION -->
+<script type="text/javascript" src="../utils/webgl-utils.js"></script>
+<script type="text/javascript" src="../utils/initShaders.js"></script>
+<script type="text/javascript" src="square.js"></script>
+
+<head>
+<title>Project LINK</title>
+<style>
+.slider {
+  -webkit-appearance: none;
+  width: 25%;
+  height: 15px;
+  border-radius: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec2 coordinates;
+uniform vec4 u_color;
+varying vec4 v_color;
+
+void main(){;
+gl_Position = vec4(coordinates, 0.0, 1.0);
+v_color = u_color;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+varying vec4 v_color;
+void main(){
+    gl_FragColor = v_color;
+}
+</script>
+
+<body bgcolor="#afafaf">
+  <div>
+    <canvas id="gl-canvas" width="1024" height="784">
+      Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+  </div>
+
+  <script>
+    var gl;
+    var u_color;
+    var square;
+    /*================Creating a canvas=================*/
+    window.onload = function init(event){
+      var canvas = document.getElementById("gl-canvas"); //get the canvas instance
+      gl = WebGLUtils.setupWebGL(canvas); //setup the instance
+      if ( !gl ) { alert( "WebGL isn't available" ); }
+
+      gl.viewport( 0, 0, canvas.width, canvas.height ); //set the instance view
+      gl.clearColor( 1.0, 1.0, 1.0, 1.0 ); //set clear color of canvas
+      gl.enable(gl.DEPTH_TEST);
+
+      /*==========Defining and storing the geometry=======*/
+      square = new Square(0, 0, 0.25, [0,0,0,1]);
+      square.generateVertices();
+      console.log(square.vertices);
+
+      var program = initShaders(gl, "vertex-shader", "fragment-shader");
+      gl.useProgram(program);
+
+      //get uniform location for vertex shader
+      u_color = gl.getUniformLocation(program, "u_color");
+
+      // Create an empty buffer object to store the vertex buffer
+      //Bind appropriate array buffer to it
+      // Pass the vertex data to the buffer
+      // Unbind the buffer
+      var vertex_buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(square.vertices), gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+      /*======== Associating shaders to buffer objects ========*/
+      // Bind vertex buffer object
+      // Get the attribute location
+      // Point an attribute to the currently bound VBO
+      // Enable the attribute
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+      var coord = gl.getAttribLocation(program, "coordinates");
+      gl.vertexAttribPointer(coord, 2, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+
+      /*============= Drawing the primitive ===============*/
+      render()
+    }
+
+    function render(now, event){
+      // Clear the canvas AND the depth buffer.
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      // // Turn on culling. By default backfacing triangles
+      // // will be culled.
+      // gl.enable(gl.CULL_FACE);
+
+      // // Enable the depth buffer
+      gl.enable(gl.DEPTH_TEST);
+
+      gl.uniform4fv(u_color, square.color);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+      requestAnimationFrame(render)
+    }
+  </script>
+</body>
+</html>

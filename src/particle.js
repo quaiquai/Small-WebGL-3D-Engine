@@ -6,26 +6,36 @@ class Particle{
 
   //Much help in physics calculations from: https://burakkanber.com/blog/modeling-physics-javascript-gravity-and-drag/
   constructor(x, y, l, angle, speed, color){
+    //position/distance of the particle travel for translation in shader 
     this.position = {
+      x: 0,
+      y: 0
+    };
+    //the position of the particle stream designated as a relation to the initial position
+    //in the canvas instance for calculating collisions
+    this.relation = {
       x: x,
       y: y
-    };
+    }
     var angleInRad = angle * Math.PI/180;
-    this.angl = angleInRad;
+    this.angl = angleInRad; //angle that the particle will be projected
+    //the initial velocity of the paritcle
     this.velocity = {
       x: (speed * Math.cos(angleInRad)),
-      y: -(speed * Math.sin(angleInRad))
+      y: (speed * Math.sin(angleInRad))
     }
     this.lifeTime = l;
     this.color = color;
     this.mass = 0.1;
     this.restitution = -0.7;
     this.s = speed;
+    this.translation = new Mat3();
   }
 
   update(dt){
     var Cd = 0.47; // Dimensionless ("coefficient of drag")
-    var rho = 1.22; // kg / m^3 density of fluid ball is in (1.22) for air
+    // var rho = 1.22; // kg / m^3 density of fluid ball is in (1.22) for air
+    var rho = sliderRho.value; // kg / m^3 density of fluid ball is in (1.22) for air
     var A = Math.PI * 4 * 4 / (10000);
     var ag = 9.81;
 
@@ -63,35 +73,16 @@ class Particle{
     this.position.x += this.velocity.x*(1/1000);
     this.position.y += -(this.velocity.y*(1/1000));
 
-    // if(this.lifeTime > 0){
-    //   this.position.x += this.velocity.x * dt * 0.03;
-    //   this.position.y += this.velocity.y * dt * 0.03;
-    //   this.color[3] = this.lifeTime;
-    // }
+    // this.translation.setTranslate([this.velocity.x*(1/1000), -(this.velocity.y*(1/1000))])
+    this.translation.setTranslate([this.position.x,this.position.y])
 
     this.lifeTime -= dt; //handle the lifetime of the particle by derementing by delta time
-    if(this.lifeTime > 0){
+    if(this.lifeTime > 0){// if life has expried make the alpha of particle 0.0 for transparency
       this.color[3] = this.lifeTime; //change the alpha channel of the particle by time alive
     }
 
-    if (this.position.y < -1) {
-        this.velocity.y *= this.restitution;
-        this.position.y = -1;
-    }
-    if (this.position.y > 1) {
-        this.velocity.y *= this.restitution;
-        this.position.y = 1;
-    }
-    if (this.position.x > 1) {
-        this.velocity.x *= this.restitution;
-        this.position.x = 1;
-    }
-    if (this.position.x < -1) {
-        this.velocity.x *= this.restitution;
-        this.position.x = -1;
-    }
 
-
+    //Update variables after particle death for a continuous stream of particles
     if(this.lifeTime <= 0){
       this.position.x = 0;
       this.position.y = 0;
@@ -101,6 +92,26 @@ class Particle{
       }
       this.color[3] = 1.0;
       this.lifeTime = Math.random() * 5;
+      this.translation = new Mat3()
+    }
+  }
+
+  checkCollision(){
+    if (this.relation.y + this.position.y < -1) { //difference of the stream position and the distance traveled from source
+        this.velocity.y *= this.restitution;
+        this.position.y = -this.relation.y - 1; //find the distance from bottom of canvas to source to reposition after collision
+    }
+    if (this.relation.y + this.position.y > 1) {//Sum of the stream position and the distance traveled from source greater than top of canvas
+        this.velocity.y *= this.restitution;
+        this.position.y = -this.relation.y + 1;//find the distance to top of canvas from source to reposition after collision
+    }
+    if (this.relation.x + this.position.x > 1) {//Sum of the stream position and the distance traveled from source greater than left of canvas
+        this.velocity.x *= this.restitution;
+        this.position.x = -this.relation.x + 1;//find the distance from left of canvas to source from reposition after collision
+    }
+    if (this.relation.x + this.position.x < -1) {//Sum of the stream position and the distance traveled from source greater than right of canvas
+        this.velocity.x *= this.restitution;
+        this.position.x = -this.relation.x - 1;//find the distance from right of canvas to source from reposition after collision
     }
   }
 }
