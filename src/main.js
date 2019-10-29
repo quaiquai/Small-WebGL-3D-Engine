@@ -37,7 +37,7 @@ var lineFragmentSource =
 var bounces = '2';
 var epsilon = '0.0001';
 var infinity = '10000.0';
-var lightSize = 0.5;
+var lightSize = 0.7;
 var lightVal = 0.5;
 
 // vertex shader, interpolate ray per-pixel
@@ -200,11 +200,12 @@ function makeCalculateColor(objects) {
 ' }';
 }
 
+//change resolution in here
 function makeMain() {
   return '' +
 ' void main() {' +
 '   vec3 newLight = light + vec3(0.5) * ' + lightSize + ';' +
-'   vec3 texture = texture2D(texture, gl_FragCoord.xy / 512.0).rgb;' +
+'   vec3 texture = texture2D(texture, gl_FragCoord.xy / 1024.0).rgb;' +
 '   gl_FragColor = vec4(mix(calculateColor(eye, initialRay, newLight), texture, textureWeight), 1.0);' +
 ' }';
 }
