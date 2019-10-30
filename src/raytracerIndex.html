@@ -1,23 +1,60 @@
 <html>
-  <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head> 
+  <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
   <body onload = loop()>
-    <canvas width = "800" height = "600" id = "shader"></canvas>
+    <div>
+      <canvas width = "1280" height = "720" id = "shader"></canvas>
+    </div>
+    <div id="overlay" class="divLeft">
+      <figure>
+        <figcaption></figcaption>
+          <pre>
+            <code id="fs_code">
+            </code>
+          </pre>
+        </figure>
+    </div>
     <p>Ray Tracer</p>
+    <div>
+      <button class="button" onclick="toggleFS()" id="fs_toggle">Fragment Shader</button>
+    </div>
     <style TYPE="text/css">
       body {background: linear-gradient(to right,gray,white,gray);}
       p {font-size:300%;text-align:center;}
       canvas {padding:0;margin:auto;display:block;position:absolute;top:0;bottom:0;left:0;right:0;}
+      #overlay {
+        position: absolute;
+      }
+      .button {
+        background-color: #555555; /* Green */
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+      }
+      .divLeft {
+        background-color: rgba(255, 255, 255, 0.6);
+        padding:0;margin:auto;display:none;position:absolute;top:0;bottom:0;left:0;right:0;width: 1280px;height: 720;overflow-x: hidden;
+        overflow-x: auto;
+        text-align:justify;
+      }
+      .divRight {
+        width:100px;
+      }
     </style>
-    <script id="VertexShader" type="text/glsl"> 
-      attribute vec2 position; 
-      void main(void) 
-      { 
+    <script id="VertexShader" type="text/glsl">
+      attribute vec2 position;
+      void main(void)
+      {
         gl_Position = vec4(position,0.0,1.0);
       }
     </script>
-    <script id="PixelShader" type="text/glsl"> 
+    <script id="PixelShader" type="text/glsl">
       precision lowp float;
       uniform float iTime;
+      uniform vec4 m_ray;
 
       // Ray tracing is a topic I have always wanted to explore, but never really had
       // the opportunity to do so until now. What exactly is ray tracing? Consider a
@@ -34,7 +71,8 @@
       // to your satisfaction.
 
       // Having worked extensively with OpenCL in the past, this seemed like a good
-      // candidate to port to a parallel runtime on a GPU. Inspired by the [smallpt](http://www.kevinbeason.com/smallpt/#moreinfo)
+      // candidate to port to a parallel runtime on a GPU. Inspired by the
+      //[smallpt](http://www.kevinbeason.com/smallpt/#moreinfo)
       // line-by-line explanation, I decided to write a parallel ray tracer with
       // extensive annotations. The results are below ...
 
@@ -116,12 +154,12 @@
       const vec3 ambient = vec3(0.6, 0.8, 1.0) * intensity / gamma;
 
       // For a Static Light
-      Light light = Light(vec3(1.0) * intensity, normalize(vec3(-1.0, 0.75, 1.0)));
+      //Light light = Light(vec3(1.0) * intensity, normalize(vec3(-1.0, 0.75, 1.0)));
 
       // For a Rotating Light
-      // Light light = Light(vec3(1.0) * intensity, normalize(
-      //                vec3(-1.0 + 4.0 * cos(iTime), 4.75,
-      //                      1.0 + 4.0 * sin(iTime))));
+      Light light = Light(vec3(1.0, 1.0 ,1.0) * intensity, normalize(
+                     vec3(-1.0 + 4.0 * cos(iTime), 4.75,
+                           1.0 + 4.0 * sin(iTime))));
 
       // I strongly dislike this line. I needed to know when a ray hits or misses a
       // surface. If it hits geometry, I returned the point at the surface. Otherwise,
@@ -172,7 +210,7 @@
           // I initially started with the [smallpt](www.kevinbeason.com/smallpt/)
           // scene definition, but soon found performance was abysmal on very large
           // spheres. I kept the general format, modified to fit my data structures.
-        spheres[0] = Sphere(1.0, vec3( 0.9, 3.5, -1.0), Material(vec3(1.0, 0.0, 1.0), 0.5, 1.25));
+          spheres[0] = Sphere(1.0, vec3( 0.9, 3.5, -1.0), Material(vec3(1.0, 0.0, 1.0), 0.5, 1.25));
           spheres[1] = Sphere(2.0, vec3(-4.0, 3.0 + sin(iTime * 5.), 0), Material(vec3(1.0, 0.0, 0.2), 1.0, 0.001));
           spheres[2] = Sphere(3.0, vec3( 4.0 + cos(iTime), 3.0, 0), Material(vec3(0.0, 0.2, 1.0), 1.0, 1.0));
           spheres[3] = Sphere(1.0, vec3( 0.5, 1.0, 6.0),                  Material(vec3(1.0, 1.0, 1.0), 0.5, 0.25));
@@ -182,7 +220,6 @@
           // longer use the OpenGL Depth and Stencil buffers to control the draw
           // order. Drawing is therefore sensitive to z-indexing, so I first intersect
           // with the plane, then loop through all spheres back-to-front.
-
           Intersect intersection = miss;
           Intersect plane = intersect(ray, Plane(vec3(0, 1, 0), Material(vec3(1.0, 1.0, 1.0), 1.0, 0.0)));
           if (plane.material.diffuse > 0.0 || plane.material.specular > 0.0) { intersection = plane; }
@@ -262,24 +299,28 @@
           return color;
       }
 
-      void main(void) 
+      void main(void)
       {
-        vec2 uv    = gl_FragCoord.xy / vec2(800.0, 600.0) - vec2(0.5);
-         uv.x *= 800.0 / 600.0;
+        vec2 uv = gl_FragCoord.xy / vec2(1280.0, 720.0) - vec2(0.5);
+        uv.x *= 1280.0 / 720.0;
+
+        vec4 m = m_ray / gl_FragCoord.xyxy;
 
         // For each fragment, create a ray at a fixed point of origin directed at
         // the coordinates of each fragment. The last thing before writing the color
         // to the fragment is to post-process the pixel values using tone-mapping.
         // In this case, I adjust for exposure and perform linear gamma correction.
-
         Ray ray = Ray(vec3(0.0, 2.5, 12.0), normalize(vec3(uv.x, uv.y, -1.0)));
         gl_FragColor = vec4(pow(radiance(ray) * exposure, vec3(1.0 / gamma)), 1.0);
         //gl_FragColor = vec4(0.0,0.0,0.0, 1.0);
       }
-    </script> 
+    </script>
     <script>
       var canvas = document.getElementById('shader');
-      var gl = canvas.getContext("webgl") || canvas.getContext('experimental-webgl'); 
+      var gl = canvas.getContext("webgl") || canvas.getContext('experimental-webgl');
+      var fsElement = document.getElementById("fs_code");
+      var fsNode = document.createTextNode("");
+      fsElement.appendChild(fsNode);
       var vertices = [-1, -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, -1];
       var buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -291,31 +332,41 @@
       gl.shaderSource(pixelshader, document.getElementById("PixelShader").text);
       gl.compileShader(pixelshader);
       var program = gl.createProgram();
-      gl.attachShader(program, vertexshader); 
+      gl.attachShader(program, vertexshader);
       gl.attachShader(program, pixelshader);
       gl.linkProgram(program);
       gl.useProgram(program);
       var coordinates = gl.getAttribLocation(program, "position");
       gl.vertexAttribPointer(coordinates, 2, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(coordinates);
-      window.requestAnimFrame = ( 
-      function() 
-      { 
-        return  window.requestAnimationFrame || 
-        window.webkitRequestAnimationFrame ||  
-        window.mozRequestAnimationFrame || 
-        window.oRequestAnimationFrame || 
+      window.requestAnimFrame = (
+      function()
+      {
+        return  window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
         window.msRequestAnimationFrame ||
-        function(callback) {window.setTimeout(callback, 1000/60);};  
-      } ) (); 
-      var time = 0;  
+        function(callback) {window.setTimeout(callback, 1000/60);};
+      } ) ();
+      var time = 0;
       function loop()
       {
         requestAnimFrame(loop);
+        fsNode.nodeValue = document.getElementById("PixelShader").innerHTML;
         time+=(1/60);
         gl.uniform1f(gl.getUniformLocation(program,"iTime"), time);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
-      }  
-    </script>     
+      }
+      function toggleFS() {
+        var x = document.getElementById("overlay");
+        if(x.style.display == "block"){
+          x.style.display = "none";
+        }else{
+          x.style.display = "block";
+        }
+
+      }
+    </script>
   </body>
 </html>
