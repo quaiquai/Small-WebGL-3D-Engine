@@ -3,50 +3,25 @@
 <!-- UTIL FILES FOR SYSTEM FUNCTION -->
 <script type="text/javascript" src="../utils/webgl-utils.js"></script>
 <script type="text/javascript" src="../utils/initShaders.js"></script>
-<script type="text/javascript" src="square.js"></script>
+<script type="text/javascript" src="../math/MV.js"></script>
+<script type="text/javascript" src="plane.js"></script>
 
 <head>
 <title>Project LINK</title>
-<style>
-.slider {
-  -webkit-appearance: none;
-  width: 25%;
-  height: 15px;
-  border-radius: 5px;
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: #4CAF50;
-  cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: #4CAF50;
-  cursor: pointer;
-}
-</style>
 </head>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
-attribute vec2 coordinates;
-uniform vec4 u_color;
+attribute vec3 coordinates;
+attribute vec4 u_color;
+uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_projection;
 varying vec4 v_color;
 
-void main(){;
-gl_Position = vec4(coordinates, 0.0, 1.0);
+void main(){
+vec4 position = vec4(u_projection * u_view * u_model * vec4(coordinates, 1.0));
+gl_Position = position;
+gl_PointSize = 10.0;
 v_color = u_color;
 }
 </script>
@@ -69,10 +44,15 @@ void main(){
   <script>
     var gl;
     var u_color;
-    var square;
+    var ground;
+    var u_model, u_view, u_projection;
+    var canvas;
+    var now;
+    var vertex_buffer, color_buffer, line_buffer, line_color_buffer;
+    var program;
     /*================Creating a canvas=================*/
     window.onload = function init(event){
-      var canvas = document.getElementById("gl-canvas"); //get the canvas instance
+      canvas = document.getElementById("gl-canvas"); //get the canvas instance
       gl = WebGLUtils.setupWebGL(canvas); //setup the instance
       if ( !gl ) { alert( "WebGL isn't available" ); }
 
@@ -81,23 +61,38 @@ void main(){
       gl.enable(gl.DEPTH_TEST);
 
       /*==========Defining and storing the geometry=======*/
-      square = new Square(0, 0, 0.25, [0,0,0,1]);
-      square.generateVertices();
-      console.log(square.vertices);
+      ground = new Plane(3.0, 0.0);
 
-      var program = initShaders(gl, "vertex-shader", "fragment-shader");
+      program = initShaders(gl, "vertex-shader", "fragment-shader");
       gl.useProgram(program);
 
       //get uniform location for vertex shader
-      u_color = gl.getUniformLocation(program, "u_color");
+      u_model = gl.getUniformLocation(program, "u_model");
+      u_projection = gl.getUniformLocation(program, "u_projection");
+      u_view = gl.getUniformLocation(program, "u_view");
 
       // Create an empty buffer object to store the vertex buffer
       //Bind appropriate array buffer to it
       // Pass the vertex data to the buffer
       // Unbind the buffer
-      var vertex_buffer = gl.createBuffer();
+      vertex_buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(square.vertices), gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.vertices), gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+      color_buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.colors), gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+      line_buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, line_buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.grid.vertices), gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+      line_color_buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, line_color_buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.grid.colors), gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
       /*======== Associating shaders to buffer objects ========*/
@@ -107,7 +102,22 @@ void main(){
       // Enable the attribute
       gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
       var coord = gl.getAttribLocation(program, "coordinates");
-      gl.vertexAttribPointer(coord, 2, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, line_buffer);
+      var coord = gl.getAttribLocation(program, "coordinates");
+      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
+      var coord = gl.getAttribLocation(program, "u_color");
+      gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, line_color_buffer);
+      var coord = gl.getAttribLocation(program, "u_color");
+      gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(coord);
 
       /*============= Drawing the primitive ===============*/
@@ -125,8 +135,31 @@ void main(){
       // // Enable the depth buffer
       gl.enable(gl.DEPTH_TEST);
 
-      gl.uniform4fv(u_color, square.color);
+      gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
+      gl.uniformMatrix4fv(u_projection, false, flatten(perspective(120, canvas.height/canvas.width, 0.1, 1000)));
+      gl.uniformMatrix4fv(u_view, false, flatten(lookAt(vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0))));
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+      var coord = gl.getAttribLocation(program, "coordinates");
+      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
+      var coord = gl.getAttribLocation(program, "u_color");
+      gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
       gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, line_buffer);
+      var coord = gl.getAttribLocation(program, "coordinates");
+      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, line_color_buffer);
+      var coord = gl.getAttribLocation(program, "u_color");
+      gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+      gl.drawArrays(gl.LINES, 0, ground.grid.gridLines);
+
       requestAnimationFrame(render)
     }
   </script>
