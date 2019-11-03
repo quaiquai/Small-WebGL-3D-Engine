@@ -5,6 +5,8 @@
 <script type="text/javascript" src="../utils/initShaders.js"></script>
 <script type="text/javascript" src="../math/MV.js"></script>
 <script type="text/javascript" src="plane.js"></script>
+<script type="text/javascript" src="mouseControls.js"></script>
+
 
 <head>
 <title>Project LINK</title>
@@ -50,12 +52,21 @@ void main(){
     var now;
     var vertex_buffer, color_buffer, line_buffer, line_color_buffer;
     var program;
+    var dragging;
+    var oldx, x, oldy, y;
+    var front = vec3(0.0, 0.0, -1.0);
+    var box;
+    var prevX, prevY = 0;
+    var pitch = 0.0;
+    var yaw = 0.0;
     /*================Creating a canvas=================*/
     window.onload = function init(event){
       canvas = document.getElementById("gl-canvas"); //get the canvas instance
       gl = WebGLUtils.setupWebGL(canvas); //setup the instance
       if ( !gl ) { alert( "WebGL isn't available" ); }
 
+
+      box = gl.canvas.getBoundingClientRect();
       gl.viewport( 0, 0, canvas.width, canvas.height ); //set the instance view
       gl.clearColor( 1.0, 1.0, 1.0, 1.0 ); //set clear color of canvas
       gl.enable(gl.DEPTH_TEST);
@@ -65,6 +76,40 @@ void main(){
 
       program = initShaders(gl, "vertex-shader", "fragment-shader");
       gl.useProgram(program);
+
+
+      canvas.onmousedown = function(event) {  //Mouse is pressed
+           x = event.clientX;
+           y = event.clientY;
+           var rect = event.target.getBoundingClientRect();
+           if (rect.left <= x && rect.right > x &&
+            rect.top <= y && rect.bottom > y) {
+            lastX = x;
+            lastY = y;
+            dragging = true;
+        }
+         };
+
+         canvas.onmouseup = function(event){ //Mouse is released
+           dragging = false;
+         }
+
+         canvas.onmousemove = function(event) { //Mouse is moved
+           if(dragging) {
+             x = event.clientX;
+             y = event.clientY;
+             let dx = (x - lastX)/canvas.width;
+             let dy = (y - lastY)/canvas.height;
+             let scale = 80;
+             yaw += scale * dx
+             yaw = Math.max(Math.min(yaw, 90), -90);
+             pitch += scale * dy;
+             pitch = Math.max(Math.min(pitch, 90), -90);
+           }
+           lastX = x;
+           lastY = y;
+         }
+
 
       //get uniform location for vertex shader
       u_model = gl.getUniformLocation(program, "u_model");
@@ -135,9 +180,15 @@ void main(){
       // // Enable the depth buffer
       gl.enable(gl.DEPTH_TEST);
 
+      lookat = lookAt(vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+      let yrotate = rotate(pitch, 1.0, 0.0, 0.0);
+      let xrotate = rotate(yaw, 0.0, 1.0, 0.0);
+      lookat = mult(lookat, yrotate);
+      lookat = mult(lookat, xrotate);
+
       gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
       gl.uniformMatrix4fv(u_projection, false, flatten(perspective(120, canvas.height/canvas.width, 0.1, 1000)));
-      gl.uniformMatrix4fv(u_view, false, flatten(lookAt(vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0))));
+      gl.uniformMatrix4fv(u_view, false, flatten(lookat));
       gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
       var coord = gl.getAttribLocation(program, "coordinates");
       gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
