@@ -4,8 +4,13 @@
 <script type="text/javascript" src="../utils/webgl-utils.js"></script>
 <script type="text/javascript" src="../utils/initShaders.js"></script>
 <script type="text/javascript" src="../math/MV.js"></script>
+<script type="text/javascript" src="../math/Mat4.js"></script>
 <script type="text/javascript" src="plane.js"></script>
 <script type="text/javascript" src="mouseControls.js"></script>
+<script type="text/javascript" src="primitives.js"></script>
+<script type="text/javascript" src="particleStream.js"></script>
+<script type="text/javascript" src="particle.js"></script>
+
 
 
 <head>
@@ -14,7 +19,7 @@
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec3 coordinates;
-attribute vec4 u_color;
+uniform vec4 u_color;
 uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
@@ -35,12 +40,49 @@ void main(){
     gl_FragColor = v_color;
 }
 </script>
+<style>
+.slider {
+  -webkit-appearance: none;
+  width: 25%;
+  height: 15px;
+  border-radius: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+</style>
 
 <body bgcolor="#afafaf">
   <div>
     <canvas id="gl-canvas" width="1024" height="784">
       Oops ... your browser doesn't support the HTML5 canvas element
     </canvas>
+  </div>
+  <div class="slidecontainer">
+    <input type="range" min="1" max="20" value="5" class="slider" id="speedValue">
+    <label for="speedValue">Speed</label>
+    <input type="range" min="1" max="100" value="5" class="slider" id="rhoDensity">
+    <label for="rhoValue">rho</label>
   </div>
 
   <script>
@@ -59,20 +101,45 @@ void main(){
     var prevX, prevY = 0;
     var pitch = 0.0;
     var yaw = 0.0;
+    var xpos = 0.0;
+    var ypos = 1.0;
+    var zpos = 1.0;
+    var dx= 0, dy = 0;
+    var forwardX = 0;
+    var forwardZ = 0;
+
+    var keyState = {};
+    var cube;
+    var slider, sliderRho, mousexNDC, mouseyNDC;
+    var at = vec3(yaw, pitch, 0.0);
+    var eye = vec3(0.0, 1.0, 1.0);
     /*================Creating a canvas=================*/
     window.onload = function init(event){
       canvas = document.getElementById("gl-canvas"); //get the canvas instance
+      slider = document.getElementById("speedValue");
+      sliderRho = document.getElementById("rhoDensity");
       gl = WebGLUtils.setupWebGL(canvas); //setup the instance
       if ( !gl ) { alert( "WebGL isn't available" ); }
+
+      window.addEventListener('keydown',function(e){
+          keyState[e.keyCode || e.which] = true;
+      },true);
+
+      window.addEventListener('keyup',function(e){
+          keyState[e.keyCode || e.which] = false;
+      },true);
+
 
 
       box = gl.canvas.getBoundingClientRect();
       gl.viewport( 0, 0, canvas.width, canvas.height ); //set the instance view
-      gl.clearColor( 1.0, 1.0, 1.0, 1.0 ); //set clear color of canvas
+      gl.clearColor( 0.5, 0.5, 0.5, 1.0 ); //set clear color of canvas
       gl.enable(gl.DEPTH_TEST);
 
       /*==========Defining and storing the geometry=======*/
-      ground = new Plane(3.0, 0.0);
+      ground = new Plane(100.0, 100.0, 0.0);
+      particle = new ParticleStream(0.0, 0.9, 10, 1000)
+      // cube = new Cube(0.10);
 
       program = initShaders(gl, "vertex-shader", "fragment-shader");
       gl.useProgram(program);
@@ -98,13 +165,14 @@ void main(){
            if(dragging) {
              x = event.clientX;
              y = event.clientY;
-             let dx = (x - lastX)/canvas.width;
-             let dy = (y - lastY)/canvas.height;
-             let scale = 80;
+             dx = (x - lastX)/canvas.width;
+             dy = (y - lastY)/canvas.height;
+             let scale = 10;
              yaw += scale * dx
              yaw = Math.max(Math.min(yaw, 90), -90);
              pitch += scale * dy;
              pitch = Math.max(Math.min(pitch, 90), -90);
+             at = vec3(yaw, pitch, -Math.cos(yaw));
            }
            lastX = x;
            lastY = y;
@@ -115,6 +183,7 @@ void main(){
       u_model = gl.getUniformLocation(program, "u_model");
       u_projection = gl.getUniformLocation(program, "u_projection");
       u_view = gl.getUniformLocation(program, "u_view");
+      u_color = gl.getUniformLocation(program, "u_color");
 
       // Create an empty buffer object to store the vertex buffer
       //Bind appropriate array buffer to it
@@ -122,23 +191,60 @@ void main(){
       // Unbind the buffer
       vertex_buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.vertices), gl.STATIC_DRAW);
-      gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-      color_buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.colors), gl.STATIC_DRAW);
-      gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-      line_buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, line_buffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.grid.vertices), gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-      line_color_buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, line_color_buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.grid.colors), gl.STATIC_DRAW);
+      particle_buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, particle_buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(particle.particleStreamVerts), gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+      // cube_buffer = gl.createBuffer();
+      // gl.bindBuffer(gl.ARRAY_BUFFER, cube_buffer);
+      // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.vertices), gl.STATIC_DRAW);
+      // gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      //
+      // cube_color_buffer = gl.createBuffer();
+      // gl.bindBuffer(gl.ARRAY_BUFFER, cube_color_buffer);
+      // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cube.colors), gl.STATIC_DRAW);
+      // gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+      window.onmousemove = function(event){
+        var mousex = event.clientX;
+        var mousey = event.clientY;
+        mousexNDC = (mousex / canvas.clientWidth) * 2 - 1;
+        mouseyNDC = (1 - (mousey / canvas.clientHeight)) * 2 - 1;
+      }
+
+      /*============= Drawing the primitive ===============*/
+      var now = 0;
+      render()
+    }
+
+    function render(now, event){
+      now = 0.01;
+      // Clear the canvas AND the depth buffer.
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      tick();
+
+      // // Turn on culling. By default backfacing triangles
+      // // will be culled.
+      // gl.enable(gl.CULL_FACE);
+
+      // // Enable the depth buffer
+      gl.enable(gl.DEPTH_TEST);
+
+      lookat = lookAt(eye, vec3(eye[0] + yaw, eye[1] + (-pitch), eye[2] + -Math.cos(yaw)), vec3(0.0, 1.0, 0.0));
+      //for orbital
+      // let yrotate = rotate(pitch, 1.0, 0.0, 0.0);
+      // let xrotate = rotate(yaw, 0.0, 1.0, 0.0);
+      // lookat = mult(lookat, xrotate);
+      // lookat = mult(lookat, yrotate);
+
+      gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
+      gl.uniformMatrix4fv(u_projection, false, flatten(perspective(120, canvas.height/canvas.width, 0.1, 1000)));
+      gl.uniformMatrix4fv(u_view, false, flatten(lookat));
+      gl.uniform4fv(u_color, flatten(ground.grid.color));
 
       /*======== Associating shaders to buffer objects ========*/
       // Bind vertex buffer object
@@ -150,68 +256,63 @@ void main(){
       gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(coord);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, line_buffer);
-      var coord = gl.getAttribLocation(program, "coordinates");
-      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(coord);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-      var coord = gl.getAttribLocation(program, "u_color");
-      gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(coord);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, line_color_buffer);
-      var coord = gl.getAttribLocation(program, "u_color");
-      gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(coord);
-
-      /*============= Drawing the primitive ===============*/
-      render()
-    }
-
-    function render(now, event){
-      // Clear the canvas AND the depth buffer.
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-      // // Turn on culling. By default backfacing triangles
-      // // will be culled.
-      // gl.enable(gl.CULL_FACE);
-
-      // // Enable the depth buffer
-      gl.enable(gl.DEPTH_TEST);
-
-      lookat = lookAt(vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-      let yrotate = rotate(pitch, 1.0, 0.0, 0.0);
-      let xrotate = rotate(yaw, 0.0, 1.0, 0.0);
-      lookat = mult(lookat, yrotate);
-      lookat = mult(lookat, xrotate);
-
-      gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
-      gl.uniformMatrix4fv(u_projection, false, flatten(perspective(120, canvas.height/canvas.width, 0.1, 1000)));
-      gl.uniformMatrix4fv(u_view, false, flatten(lookat));
-      gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-      var coord = gl.getAttribLocation(program, "coordinates");
-      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(coord);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-      var coord = gl.getAttribLocation(program, "u_color");
-      gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(coord);
-      gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, line_buffer);
-      var coord = gl.getAttribLocation(program, "coordinates");
-      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(coord);
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, line_color_buffer);
-      var coord = gl.getAttribLocation(program, "u_color");
-      gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(coord);
       gl.drawArrays(gl.LINES, 0, ground.grid.gridLines);
 
+      gl.bindBuffer(gl.ARRAY_BUFFER, particle_buffer);
+      var coord = gl.getAttribLocation(program, "coordinates");
+      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+
+
+      for (let i = 0; i < particle.particleCount; i++){
+        particle.particleList[i].update(now);
+        particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
+        gl.uniformMatrix4fv(u_model, false, particle.particleList[i].translation.array);
+        gl.uniform4fv(u_color, particle.particleList[i].color);
+        gl.drawArrays(gl.POINTS, i, 1);
+      }
+
+      // gl.bindBuffer(gl.ARRAY_BUFFER, line_buffer);
+      // var coord = gl.getAttribLocation(program, "coordinates");
+      // gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+      // gl.enableVertexAttribArray(coord);
+      //
+      // gl.bindBuffer(gl.ARRAY_BUFFER, line_color_buffer);
+      // var coord = gl.getAttribLocation(program, "u_color");
+      // gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
+      // gl.enableVertexAttribArray(coord);
+      //
+      // gl.drawArrays(gl.LINES, 0, ground.grid.gridLines);
+      //
+      // gl.bindBuffer(gl.ARRAY_BUFFER, cube_buffer);
+      // var coord = gl.getAttribLocation(program, "coordinates");
+      // gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+      // gl.enableVertexAttribArray(coord);
+      //
+      // gl.bindBuffer(gl.ARRAY_BUFFER, cube_color_buffer);
+      // var coord = gl.getAttribLocation(program, "u_color");
+      // gl.vertexAttribPointer(coord, 4, gl.FLOAT, false, 0, 0);
+      // gl.enableVertexAttribArray(coord);
+      //
+      // gl.drawArrays(gl.TRIANGLE_STRIP, 0, cube.vertices.length);
+
       requestAnimationFrame(render)
+    }
+
+    function tick(){
+      if (keyState[38] || keyState[87]){
+        forwardX += at[0] * 0.05; // move in forward in direction camera
+        forwardZ += at[2] * 0.05; // move in forward in direction camera
+      }
+      if (keyState[40] || keyState[83]){
+        forwardX -= at[0] * 0.05; // move in backwards in direction camera
+        forwardZ -= at[2] * 0.05; // move in backwards in direction camera
+      }
+      eye[0] = Math.sin(dy) * Math.cos(dx) + forwardX;
+      eye[1] = 1.0;
+      eye[2] = Math.cos(dy) * Math.cos(dx) + forwardZ;
+      console.log()
     }
   </script>
 </body>

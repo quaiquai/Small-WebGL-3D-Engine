@@ -41,7 +41,7 @@ class ObjLoader{
 				case "v":
 					switch(line.charAt(1)){
 						case " ":
-						 	itm = line.split(" "); itm.shift(); itm.shift()
+						 	itm = line.split(" "); itm.shift();
 							cVert.push(parseFloat(itm[0]) , parseFloat(itm[1]) , parseFloat(itm[2]) ); break;		//VERTEX
 						case "t":
 							itm = line.split(" "); itm.shift();

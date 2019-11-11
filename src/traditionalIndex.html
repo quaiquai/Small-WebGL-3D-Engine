@@ -9,25 +9,20 @@
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec3 vPosition;
 attribute vec3 nPosition;
-attribute vec2 tPosition;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 modelMatrix;
 varying vec3 v_normal;
-varying vec2 v_texCords;
 void main(){
 gl_Position =  projectionMatrix * viewMatrix * modelMatrix * vec4(vPosition, 1.0); // convert back to homogeneous coordinates;
 v_normal = nPosition;
-v_texCords = tPosition;
 }
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
 varying vec3 v_normal;
-varying vec2 v_texCords;
 uniform vec4 u_color;
-uniform sampler2D u_texture;
 uniform vec3 u_reverseLightDirection;
 void
 main(){
@@ -36,8 +31,7 @@ main(){
     // will make it a unit vector again
     vec3 normal = normalize(v_normal);
     float light = dot(normal, u_reverseLightDirection);
-    gl_FragColor = u_color; //load the color passed in
-    gl_FragColor = texture2D(u_texture, v_texCords); //load the texture
+    gl_FragColor = u_color; //load the color passed in //load the texture
     // Lets multiply just the color portion (not the alpha)
     // by the light
     gl_FragColor.rgb *= light;

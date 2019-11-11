@@ -46,7 +46,7 @@ function main(){
         program = initShaders(gl, "vertex-shader", "fragment-shader");
         gl.useProgram(program);
 
-        var house = new LoadOBJ("../objects/cat.obj"); //create a new object to parse and render
+        var house = new LoadOBJ("../objects/trees.obj"); //create a new object to parse and render
         var objurl = house.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
         objurl = objurl.responseText // get the text from the ajax response
 
@@ -85,42 +85,17 @@ function main(){
         gl.vertexAttribPointer( nPosition, 3, gl.FLOAT, false, 0, 0 );
         gl.enableVertexAttribArray( nPosition );
 
-        var tBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, tBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW);
-
-        textureCordsLoc = gl.getAttribLocation(program, "tPosition");
-        gl.vertexAttribPointer(textureCordsLoc, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(textureCordsLoc);
-
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        // Fill the texture with a 1x1 blue pixel.
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-              new Uint8Array([0, 0, 255, 255]));
-
-        // Asynchronously load an image
-        var image = new Image();
-        image.src = "../textures/Cat_bump.jpg";
-        image.addEventListener('load', function() {
-          // Now that the image has loaded make copy it to the texture.
-          gl.bindTexture(gl.TEXTURE_2D, texture);
-          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
-          gl.generateMipmap(gl.TEXTURE_2D);
-        });
-
         viewMatrix = new Mat4();
-        viewMatrix.lookAt(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+        viewMatrix.lookAt(0.0, 0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
         modelMatrix = new Mat4();
-        modelMatrix.translate([0.0,-8.0,-50.0])
-        modelMatrix.scale([0.5,0.5,0.5])
-        modelMatrix.rotate(90, 1.0, 0.0, 0.0)
-        modelMatrix.rotate(90, 0.0,0.0,1.0);
+        modelMatrix.translate([0.0,-400.0,-80.0])
+        // modelMatrix.scale([0.5,0.5,0.5])
+        // modelMatrix.rotate(90, 1.0, 0.0, 0.0)
+        // modelMatrix.rotate(90, 0.0,0.0,1.0);
 
         projectionMatrix = new Mat4();
-        projectionMatrix.setPerspective(80, canvas.width/canvas.height, 0, 10);
+        projectionMatrix.setPerspective(100, canvas.width/canvas.height, 0.1, 100);
 
         render();
 

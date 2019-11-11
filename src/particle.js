@@ -5,31 +5,34 @@ class Particle{
   // But when updating the particle each frame, it’s easier to work with a velocity vector.
 
   //Much help in physics calculations from: https://burakkanber.com/blog/modeling-physics-javascript-gravity-and-drag/
-  constructor(x, y, l, angle, speed, color){
-    //position/distance of the particle travel for translation in shader 
+  constructor(x, y, z, l, angle, speed, color){
+    //position/distance of the particle travel for translation in shader
     this.position = {
       x: 0,
-      y: 0
+      y: 0,
+      z: 0
     };
     //the position of the particle stream designated as a relation to the initial position
     //in the canvas instance for calculating collisions
     this.relation = {
       x: x,
-      y: y
+      y: y,
+      z: z
     }
     var angleInRad = angle * Math.PI/180;
     this.angl = angleInRad; //angle that the particle will be projected
     //the initial velocity of the paritcle
     this.velocity = {
       x: (speed * Math.cos(angleInRad)),
-      y: (speed * Math.sin(angleInRad))
+      y: (speed * Math.sin(angleInRad)* Math.cos(angleInRad)),
+      z: (speed * Math.sin(angleInRad))
     }
     this.lifeTime = l;
     this.color = color;
     this.mass = 0.1;
-    this.restitution = -0.7;
+    this.restitution = -0.9;
     this.s = speed;
-    this.translation = new Mat3();
+    this.translation = new Mat4();
   }
 
   update(dt){
@@ -56,25 +59,30 @@ class Particle{
     */
     var Fx = -0.5 * Cd * A * rho * this.velocity.x * this.velocity.x * this.velocity.x / Math.abs(this.velocity.x);
     var Fy = -0.5 * Cd * A * rho * this.velocity.y * this.velocity.y * this.velocity.y / Math.abs(this.velocity.y);
+    var Fz = -0.5 * Cd * A * rho * this.velocity.z * this.velocity.z * this.velocity.z / Math.abs(this.velocity.z);
     //check for non numbers and handle
     Fx = (isNaN(Fx) ? 0 : Fx);
     Fy = (isNaN(Fy) ? 0 : Fy);
+    Fz = (isNaN(Fz) ? 0 : Fz);
 
     // Calculate acceleration ( F = ma )
     var ax = Fx / this.mass;
     var ay = ag + (Fy / this.mass);
+    var az = Fz / this.mass;
 
     // Integrate to get velocity
     this.velocity.x += ax*(1/40);
     this.velocity.y += ay*(1/40);
+    this.velocity.z += az*(1/40);
 
     // Integrate to get position
     //multiply by the framerate to change speed
     this.position.x += this.velocity.x*(1/1000);
     this.position.y += -(this.velocity.y*(1/1000));
+    this.position.z += this.velocity.z*(1/1000);
 
     // this.translation.setTranslate([this.velocity.x*(1/1000), -(this.velocity.y*(1/1000))])
-    this.translation.setTranslate([this.position.x,this.position.y])
+    this.translation.setTranslate([this.position.x,this.position.y, this.position.z])
 
     this.lifeTime -= dt; //handle the lifetime of the particle by derementing by delta time
     if(this.lifeTime > 0){// if life has expried make the alpha of particle 0.0 for transparency
@@ -86,27 +94,29 @@ class Particle{
     if(this.lifeTime <= 0){
       this.position.x = 0;
       this.position.y = 0;
+      this.position.z = 0;
       this.velocity = {
         x: (slider.value * Math.cos(this.angl)),
-        y: -(slider.value * Math.sin(this.angl))
+        y: 0.1*(slider.value * Math.sin(this.angl)),
+        z: (slider.value * Math.sin(this.angl))
       }
       this.color[3] = 1.0;
       this.lifeTime = Math.random() * 5;
-      this.translation = new Mat3()
+      this.translation = new Mat4()
     }
   }
 
   checkCollision(mouseyNDC, mousexNDC){
-    if (this.relation.y + this.position.y < mouseyNDC + 0.02 && 
-        this.relation.x + this.position.x > mousexNDC - 0.02 && 
-        this.relation.y + this.position.y > mouseyNDC - 0.02 && 
+    if (this.relation.y + this.position.y < mouseyNDC + 0.02 &&
+        this.relation.x + this.position.x > mousexNDC - 0.02 &&
+        this.relation.y + this.position.y > mouseyNDC - 0.02 &&
         this.relation.x + this.position.x < mousexNDC){
       this.velocity.y *= this.restitution;
-      this.position.y = -this.relation.y + mouseyNDC + 0.02;  
+      this.position.y = -this.relation.y + mouseyNDC + 0.02;
     }
-    if (this.relation.y + this.position.y < -1) { //difference of the stream position and the distance traveled from source
+    if (this.relation.y + this.position.y < 0) { //difference of the stream position and the distance traveled from source
       this.velocity.y *= this.restitution;
-      this.position.y = -this.relation.y - 1; //find the distance from bottom of canvas to source to reposition after collision
+      this.position.y = -this.relation.y - 0; //find the distance from bottom of canvas to source to reposition after collision
     }
     if (this.relation.y + this.position.y > 1) {//Sum of the stream position and the distance traveled from source greater than top of canvas
       this.velocity.y *= this.restitution;
