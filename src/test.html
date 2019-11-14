@@ -11,8 +11,6 @@
 <script type="text/javascript" src="particleStream.js"></script>
 <script type="text/javascript" src="particle.js"></script>
 
-
-
 <head>
 <title>Project LINK</title>
 </head>
@@ -122,7 +120,6 @@ void main(){
       gl = WebGLUtils.setupWebGL(canvas); //setup the instance
       if ( !gl ) { alert( "WebGL isn't available" ); }
 
-
       box = gl.canvas.getBoundingClientRect();
       gl.viewport( 0, 0, canvas.width, canvas.height ); //set the instance view
       gl.clearColor( 0.5, 0.5, 0.5, 1.0 ); //set clear color of canvas
@@ -136,41 +133,6 @@ void main(){
 
       program = initShaders(gl, "vertex-shader", "fragment-shader");
       gl.useProgram(program);
-
-      //*******************drag orbital camera*************
-      // canvas.onmousedown = function(event) {  //Mouse is pressed
-      //      x = event.clientX;
-      //      y = event.clientY;
-      //      var rect = event.target.getBoundingClientRect();
-      //      if (rect.left <= x && rect.right > x &&
-      //       rect.top <= y && rect.bottom > y) {
-      //       lastX = x;
-      //       lastY = y;
-      //       dragging = true;
-      //   }
-      //    };
-      //
-      //    canvas.onmouseup = function(event){ //Mouse is released
-      //      dragging = false;
-      //    }
-      //
-      //    canvas.onmousemove = function(event) { //Mouse is moved
-      //      if(dragging) {
-      //        x = event.clientX;
-      //        y = event.clientY;
-      //        dx = (x - lastX)/canvas.width;
-      //        dy = (y - lastY)/canvas.height;
-      //        let scale = 10;
-      //        yaw += scale * dx
-      //        // yaw = Math.max(Math.min(yaw, 90), -90);
-      //        pitch += scale * dy;
-      //        pitch = Math.max(Math.min(pitch, 90), -90);
-      //        at = vec3(Math.sin(yaw), pitch, -Math.cos(yaw));
-      //      }
-      //      lastX = x;
-      //      lastY = y;
-      //    }
-
 
       //get uniform location for vertex shader
       u_model = gl.getUniformLocation(program, "u_model");
