@@ -13,23 +13,24 @@ class Plane{
     };
     for (let i = -gSIZEx/2; i < gSIZEx/2; i++){
       for (let j = -gSIZEz/2; j < gSIZEz/2; j++){
-      // let x = j/gSIZEx * 2;
-      // let y = 0.0;
-      // let z = i/gSIZEz * 2;
-      this.grid.vertices.push(i/gSIZEx* 2,0.0,j/gSIZEx* 2);
-      // this.grid.vertices.push(i/gSIZEx,0.0,j/gSIZEx);
-      this.grid.gridLines+=1;
-    }
+        // let x = j/gSIZEx * 2;
+        // let y = 0.0;
+        // let z = i/gSIZEz * 2;
+        this.grid.vertices.push(i/gSIZEx* 2,0.0,j/gSIZEx* 2);
+        // this.grid.vertices.push(i/gSIZEx,0.0,j/gSIZEx);
+        this.grid.gridLines+=1;
+      }
     }
     for (let i = -gSIZEx/2; i < gSIZEx/2; i++){
       for (let j = -gSIZEz/2; j < gSIZEz/2; j++){
-      // let x = j/gSIZEx * 2;
-      // let y = 0.0;
-      // let z = i/gSIZEz * 2;
-      this.grid.vertices.push(j/gSIZEx * 2,0.0,i/gSIZEx * 2);
-      // this.grid.vertices.push(i/gSIZEx,0.0,j/gSIZEx);
-      this.grid.gridLines+=1;
+        // let x = j/gSIZEx * 2;
+        // let y = 0.0;
+        // let z = i/gSIZEz * 2;
+        this.grid.vertices.push(j/gSIZEx * 2,0.0,i/gSIZEx * 2);
+        // this.grid.vertices.push(i/gSIZEx,0.0,j/gSIZEx);
+        this.grid.gridLines+=1;
+      }
     }
-    }
+    this.vertexBuffer = gl.createBuffer();
   }
 }

@@ -144,8 +144,7 @@ void main(){
       //Bind appropriate array buffer to it
       // Pass the vertex data to the buffer
       // Unbind the buffer
-      vertex_buffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, ground.vertexBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.grid.vertices), gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
@@ -198,7 +197,7 @@ void main(){
       // Get the attribute location
       // Point an attribute to the currently bound VBO
       // Enable the attribute
-      gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+      gl.bindBuffer(gl.ARRAY_BUFFER, ground.vertexBuffer);
       var coord = gl.getAttribLocation(program, "coordinates");
       gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(coord);
