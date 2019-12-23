@@ -10,6 +10,7 @@
 <script type="text/javascript" src="primitives.js"></script>
 <script type="text/javascript" src="particleStream.js"></script>
 <script type="text/javascript" src="particle.js"></script>
+<script type="text/javascript" src="wall.js"></script>
 
 <head>
 <title>Project LINK</title>
@@ -129,6 +130,7 @@ void main(){
       ground = new Plane(100.0, 100.0, 0.0);
       particle = new ParticleStream(0.0, 0.9, 10, 1000)
       camera = new Camera("fps")
+      wall = new Wall([-1, 0, -1], [1, 1, -1]);
       // cube = new Cube(0.10);
 
       program = initShaders(gl, "vertex-shader", "fragment-shader");
@@ -151,6 +153,10 @@ void main(){
       particle_buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, particle_buffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(particle.particleStreamVerts), gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, wall.vertexBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(wall.values.vertices), gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
       window.onmousemove = function(event){
@@ -188,7 +194,7 @@ void main(){
       // lookat = mult(lookat, yrotate);
 
       gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
-      gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.height/canvas.width, 0.1, 1000)));
+      gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.height/canvas.width, 0.01, 1000)));
       gl.uniformMatrix4fv(u_view, false, flatten(lookat));
       gl.uniform4fv(u_color, flatten(ground.grid.color));
 
@@ -202,6 +208,12 @@ void main(){
       gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
       gl.enableVertexAttribArray(coord);
       gl.drawArrays(gl.LINES, 0, ground.grid.gridLines);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, wall.vertexBuffer);
+      var coord = gl.getAttribLocation(program, "coordinates");
+      gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(coord);
+      gl.drawArrays(gl.TRIANGLE_FAN, 0, wall.values.vertices.length/3);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, particle_buffer);
       var coord = gl.getAttribLocation(program, "coordinates");
