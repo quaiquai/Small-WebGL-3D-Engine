@@ -18,25 +18,39 @@
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 attribute vec3 coordinates;
-uniform vec4 u_color;
+attribute vec3 a_normal;
 uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
-varying vec4 v_color;
+varying vec3 v_normal;
 
 void main(){
 vec4 position = vec4(u_projection * u_view * u_model * vec4(coordinates, 1.0));
 gl_Position = position;
 gl_PointSize = 10.0;
-v_color = u_color;
+v_normal = a_normal;
 }
 </script>
 
 <script id="fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
-varying vec4 v_color;
+varying vec3 v_normal;
+
+uniform vec4 u_color;
+uniform vec3 u_reverseLightDirection;
+
 void main(){
-    gl_FragColor = v_color;
+  // because v_normal is a varying it's interpolated
+  // so it will not be a unit vector. Normalizing it
+  // will make it a unit vector again
+  vec3 normal = normalize(v_normal);
+
+  float light = dot(normal, u_reverseLightDirection);
+
+  gl_FragColor = u_color;
+  // Lets multiply just the color portion (not the alpha)
+  // by the light
+  gl_FragColor.rgb *= light;
 }
 </script>
 <style>
@@ -136,7 +150,7 @@ void main(){
       program = initShaders(gl, "vertex-shader", "fragment-shader");
       gl.useProgram(program);
 
-      cube = new Cube(1.0);
+      cube = new Cube(0.2);
 
       //get uniform location for vertex shader
       u_model = gl.getUniformLocation(program, "u_model");
@@ -200,7 +214,7 @@ void main(){
       // lookat = mult(lookat, xrotate);
       // lookat = mult(lookat, yrotate);
 
-      gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
+      // gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
       gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.height/canvas.width, 0.01, 1000)));
       gl.uniformMatrix4fv(u_view, false, flatten(lookat));
       // gl.uniform4fv(u_color, flatten(ground.grid.color));
@@ -239,7 +253,7 @@ void main(){
 
       cube.associateBuffers();
       cube.setUniforms();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 36);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
 
       requestAnimationFrame(render)
     }
