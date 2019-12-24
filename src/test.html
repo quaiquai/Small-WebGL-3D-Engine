@@ -28,7 +28,7 @@ void main(){
 vec4 position = vec4(u_projection * u_view * u_model * vec4(coordinates, 1.0));
 gl_Position = position;
 gl_PointSize = 10.0;
-v_normal = a_normal;
+v_normal = mat3(u_model) * a_normal;
 }
 </script>
 
@@ -127,6 +127,7 @@ void main(){
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
     var eye = vec3(0.0, 0.2, 1.0);
+    var reverseLightDirectionLocation;
     /*================Creating a canvas=================*/
     window.onload = function init(event){
       canvas = document.getElementById("gl-canvas"); //get the canvas instance
@@ -150,14 +151,14 @@ void main(){
       program = initShaders(gl, "vertex-shader", "fragment-shader");
       gl.useProgram(program);
 
-      cube = new Cube(0.2);
+      cube = new Cube(1.0);
 
       //get uniform location for vertex shader
-      u_model = gl.getUniformLocation(program, "u_model");
+      // u_model = gl.getUniformLocation(program, "u_model");
       u_projection = gl.getUniformLocation(program, "u_projection");
       u_view = gl.getUniformLocation(program, "u_view");
-      u_color = gl.getUniformLocation(program, "u_color");
-
+      // u_color = gl.getUniformLocation(program, "u_color");
+      reverseLightDirectionLocation = gl.getUniformLocation(program, "u_reverseLightDirection");
       // Create an empty buffer object to store the vertex buffer
       //Bind appropriate array buffer to it
       // Pass the vertex data to the buffer
@@ -188,12 +189,12 @@ void main(){
       }
 
       /*============= Drawing the primitive ===============*/
-      var now = 0;
+      now = 0;
       render()
     }
 
-    function render(now, event){
-      now = 0.01;
+    function render(event){
+      now += 0.01;
       // Clear the canvas AND the depth buffer.
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       tick();
@@ -215,8 +216,9 @@ void main(){
       // lookat = mult(lookat, yrotate);
 
       // gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
-      gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.height/canvas.width, 0.01, 1000)));
+      gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
       gl.uniformMatrix4fv(u_view, false, flatten(lookat));
+      gl.uniform3fv(this.reverseLightDirectionLocation, normalize([0.0, 0.7, 1.0]));
       // gl.uniform4fv(u_color, flatten(ground.grid.color));
 
       /*======== Associating shaders to buffer objects ========*/
@@ -252,6 +254,9 @@ void main(){
       // }
 
       cube.associateBuffers();
+      let cube_rotation = mat4();
+      cube_rotation = rotate(0.5, 0.0, 1.0, 0.0);
+      cube.model = mult(cube.model, cube_rotation);
       cube.setUniforms();
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
 

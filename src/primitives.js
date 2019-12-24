@@ -13,20 +13,20 @@ class Cube extends Primitives{
       // Front face
       -sz, 0,  sz,
       sz, 0,  sz,
-      -sz,  sz,  sz,
-      sz,  sz,  sz,
+      -sz,  sz * 2,  sz,
+      sz,  sz * 2,  sz,
 
       // Back face
       -sz, 0, -sz,
-      -sz,  sz, -sz,
+      -sz,  sz * 2, -sz,
        sz,  0, -sz,
-       sz, sz, -sz,
+       sz, sz * 2, -sz,
 
       // Top face
-      -sz,  sz, -sz,
-      sz,  sz,  -sz,
-       -sz,  sz,  sz,
-       sz,  sz, sz,
+      -sz,  sz * 2, -sz,
+      sz,  sz * 2,  -sz,
+       -sz,  sz * 2,  sz,
+       sz,  sz * 2, sz,
 
       // Bottom face
       -sz, 0, -sz,
@@ -36,15 +36,15 @@ class Cube extends Primitives{
 
       // Right face
        sz, 0, -sz,
-       sz,  sz, -sz,
+       sz,  sz * 2, -sz,
        sz,  0,  sz,
-       sz, sz,  sz,
+       sz, sz * 2,  sz,
 
       // Left face
       -sz, 0, -sz,
       -sz, 0,  sz,
-      -sz,  sz,  -sz,
-      -sz,  sz, sz
+      -sz,  sz * 2,  -sz,
+      -sz,  sz * 2, sz
     ]
     this.normals = [
       //Front face
@@ -88,6 +88,7 @@ class Cube extends Primitives{
     ];
     this.genBuffers();
     this.genUniforms();
+    this.model = mat4();
   }
 
   genBuffers(){
@@ -117,12 +118,10 @@ class Cube extends Primitives{
   genUniforms(){
     this.u_model = gl.getUniformLocation(program, "u_model");
     this.u_color = gl.getUniformLocation(program, "u_color");
-    this.reverseLightDirectionLocation = gl.getUniformLocation(program, "u_reverseLightDirection");
   }
 
   setUniforms(){
-    gl.uniformMatrix4fv(this.u_model, false, new Mat4().array);
+    gl.uniformMatrix4fv(this.u_model, false, flatten(this.model));
     gl.uniform4fv(this.u_color, this.color);
-    gl.uniform3fv(this.reverseLightDirectionLocation, normalize([0.0, 0.7, 1.0]));
   }
 }
