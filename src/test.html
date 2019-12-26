@@ -10,7 +10,7 @@
 <script type="text/javascript" src="primitives.js"></script>
 <script type="text/javascript" src="particleStream.js"></script>
 <script type="text/javascript" src="particle.js"></script>
-<script type="text/javascript" src="wall.js"></script>
+<!-- <script type="text/javascript" src="wall.js"></script> -->
 
 <head>
 <title>Project LINK</title>
@@ -124,6 +124,7 @@ void main(){
     var vBufferId, indexBuffer;
     var keyState = {};
     var cube;
+    var wall, wall2, flat;
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
     var eye = vec3(0.0, 0.2, 1.0);
@@ -151,7 +152,10 @@ void main(){
       program = initShaders(gl, "vertex-shader", "fragment-shader");
       gl.useProgram(program);
 
-      cube = new Cube(1.0);
+      cube = new Cube(0.2);
+      wall = new Wall([-1, 0, -1], [1, 1, -1], [0, 0, 1]);
+      wall2 = new Wall([1, 0, -1], [1, 1, 1], [-1, 0, 0]);
+      flat = new Flat([-1, 0, 1], [1, 0, -1], 0, [0, 1, 0]);
 
       //get uniform location for vertex shader
       // u_model = gl.getUniformLocation(program, "u_model");
@@ -254,11 +258,22 @@ void main(){
       // }
 
       cube.associateBuffers();
-      let cube_rotation = mat4();
-      cube_rotation = rotate(0.5, 0.0, 1.0, 0.0);
-      cube.model = mult(cube.model, cube_rotation);
+      cube.model = mult(cube.model, rotate(0.5, 0.0, 1.0, 0.0));
+
       cube.setUniforms();
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
+
+      wall.associateBuffers();
+      wall.setUniforms();
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      wall2.associateBuffers();
+      wall2.setUniforms();
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      flat.associateBuffers();
+      flat.setUniforms();
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       requestAnimationFrame(render)
     }
