@@ -1,7 +1,6 @@
 //
-//  initShaders.js
+//  initShaders from HTML scripts with ids
 //
-
 function initShaders( gl, vertexShaderId, fragmentShaderId )
 {
     var vertShdr;
@@ -58,7 +57,7 @@ function initShaders( gl, vertexShaderId, fragmentShaderId )
 
 
 // function that does all shader initializations and 
-// returns the compiled shader program
+// returns the compiled shader program from javascript variables
 function createShaders (vs, fs) {
                 // Create program object
     program = gl.createProgram();
