@@ -10,9 +10,10 @@
 <script type="text/javascript" src="primitives.js"></script>
 <script type="text/javascript" src="particleStream.js"></script>
 <script type="text/javascript" src="particle.js"></script>
-<script type="text/javascript" src="wall.js"></script>
 <script type="text/javascript" src="shaders/FS_directionalLight.js"></script>
 <script type="text/javascript" src="shaders/VS_directionalLight.js"></script>
+<script type="text/javascript" src="shaders/FS_pointLight.js"></script>
+<script type="text/javascript" src="shaders/VS_pointLight.js"></script>
 
 <head>
 <title>Project LINK</title>
@@ -94,6 +95,7 @@
     var at = vec3(0.0, 0.0, -1.0);
     var eye = vec3(0.0, 0.2, 1.0);
     var reverseLightDirectionLocation;
+    var lightWorldPositionLocation;
     /*================Creating a canvas=================*/
     window.onload = function init(event){
       canvas = document.getElementById("gl-canvas"); //get the canvas instance
@@ -112,7 +114,7 @@
       // particle = new ParticleStream(0.0, 0.9, 10, 1000)
       camera = new Camera("fps")
 
-      program = createShaders(VS_directionalLighting, FS_directionalLighting);
+      program = createShaders(VS_pointLighting, FS_pointLighting);
       gl.useProgram(program);
 
       cube = new Cube(0.2);
@@ -127,7 +129,10 @@
       u_projection = gl.getUniformLocation(program, "u_projection");
       u_view = gl.getUniformLocation(program, "u_view");
       // u_color = gl.getUniformLocation(program, "u_color");
-      reverseLightDirectionLocation = gl.getUniformLocation(program, "u_reverseLightDirection");
+      //DIRECTIONAL LIGHT
+      // reverseLightDirectionLocation = gl.getUniformLocation(program, "u_reverseLightDirection");
+      //POINT LIGHT
+      lightWorldPositionLocation = gl.getUniformLocation(program, "u_lightPosition");
       // Create an empty buffer object to store the vertex buffer
       //Bind appropriate array buffer to it
       // Pass the vertex data to the buffer
@@ -180,7 +185,10 @@
       // gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
       gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
       gl.uniformMatrix4fv(u_view, false, flatten(lookat));
-      gl.uniform3fv(this.reverseLightDirectionLocation, normalize([0.5, 0.7, 1.0]));
+      //DIRECTIONAL LIGHT
+      // gl.uniform3fv(this.reverseLightDirectionLocation, normalize([0.5, 0.7, 1.0]));
+      //POINT LIGHT
+      gl.uniform3fv(lightWorldPositionLocation, [0.5, 1.0, 0.2]);
       // gl.uniform4fv(u_color, flatten(ground.grid.color));
 
       /*======== Associating shaders to buffer objects ========*/
