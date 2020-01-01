@@ -55,3 +55,45 @@ function initShaders( gl, vertexShaderId, fragmentShaderId )
 
     return program;
 }
+
+
+// function that does all shader initializations and 
+// returns the compiled shader program
+function createShaders (vs, fs) {
+                // Create program object
+    program = gl.createProgram();
+
+    var compiled;
+
+    // load vertex gouraud shader
+    var vertexGouraudShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertexGouraudShader, vs);
+    gl.compileShader(vertexGouraudShader);
+    gl.attachShader(program, vertexGouraudShader);
+    compiled = gl.getShaderParameter(vertexGouraudShader, gl.COMPILE_STATUS);
+    if (!compiled) {
+        console.error(gl.getShaderInfoLog(vertexGouraudShader));
+        console.log (gl.getShaderInfoLog(vertexGouraudShader));
+    }
+
+    // load fragment gouraud shader
+    var fragmentGouraudShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragmentGouraudShader, fs);
+    gl.compileShader(fragmentGouraudShader);
+    gl.attachShader(program, fragmentGouraudShader);
+    compiled = gl.getShaderParameter(fragmentGouraudShader, gl.COMPILE_STATUS);
+    if (!compiled) {
+        console.error(gl.getShaderInfoLog(fragmentGouraudShader));
+    }
+
+    gl.linkProgram(program);
+
+
+    //  Link program
+    var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+    if (!linked) {
+        console.error(gl.getProgramInfoLog(program));
+        console.log (gl.getProgramInfoLog(program));
+    }
+    return program;
+}

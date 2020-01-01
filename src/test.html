@@ -11,6 +11,9 @@
 <script type="text/javascript" src="particleStream.js"></script>
 <script type="text/javascript" src="particle.js"></script>
 <script type="text/javascript" src="wall.js"></script>
+<script type="text/javascript" src="shaders/FS_directionalLight.js"></script>
+<script type="text/javascript" src="shaders/VS_directionalLight.js"></script>
+
 
 <head>
 <title>Project LINK</title>
@@ -133,7 +136,7 @@ void main(){
       wall = new Wall([-1, 0, -1], [1, 1, -1]);
       // cube = new Cube(0.10);
 
-      program = initShaders(gl, "vertex-shader", "fragment-shader");
+      program = createShaders(VS_directionalLighting, FS_directionalLighting);
       gl.useProgram(program);
 
       //get uniform location for vertex shader
