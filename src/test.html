@@ -96,6 +96,7 @@
     var eye = vec3(0.0, 0.2, 1.0);
     var reverseLightDirectionLocation;
     var lightWorldPositionLocation;
+    var viewPosition, shininessLocation, lightColorLocation, specularColorLocation;
     /*================Creating a canvas=================*/
     window.onload = function init(event){
       canvas = document.getElementById("gl-canvas"); //get the canvas instance
@@ -133,6 +134,10 @@
       // reverseLightDirectionLocation = gl.getUniformLocation(program, "u_reverseLightDirection");
       //POINT LIGHT
       lightWorldPositionLocation = gl.getUniformLocation(program, "u_lightPosition");
+      viewPosition = gl.getUniformLocation(program, "u_viewPosition");
+      shininessLocation = gl.getUniformLocation(program, "u_shininess");
+      specularColorLocation = gl.getUniformLocation(program, "u_specularColor");
+      lightColorLocation = gl.getUniformLocation(program, "u_lightColor");
       // Create an empty buffer object to store the vertex buffer
       //Bind appropriate array buffer to it
       // Pass the vertex data to the buffer
@@ -189,6 +194,10 @@
       // gl.uniform3fv(this.reverseLightDirectionLocation, normalize([0.5, 0.7, 1.0]));
       //POINT LIGHT
       gl.uniform3fv(lightWorldPositionLocation, [0.5, 1.0, 0.2]);
+      gl.uniform3fv(viewPosition, eye);
+      gl.uniform3fv(lightColorLocation, [1.0, 1.0, 1.0]);
+      gl.uniform3fv(specularColorLocation, [1.0, 1.0, 1.0]);
+      gl.uniform1f(shininessLocation, 150.0);
       // gl.uniform4fv(u_color, flatten(ground.grid.color));
 
       /*======== Associating shaders to buffer objects ========*/
