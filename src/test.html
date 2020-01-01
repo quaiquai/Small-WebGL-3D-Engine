@@ -124,7 +124,7 @@ void main(){
     var vBufferId, indexBuffer;
     var keyState = {};
     var cube;
-    var wall, wall2, flat;
+    var wall, wall2, wall3, wall4, flat;
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
     var eye = vec3(0.0, 0.2, 1.0);
@@ -155,6 +155,8 @@ void main(){
       cube = new Cube(0.2);
       wall = new Wall([-1, 0, -1], [1, 1, -1], [0, 0, 1]);
       wall2 = new Wall([1, 0, -1], [1, 1, 1], [-1, 0, 0]);
+      wall3 = new Wall([-1, 0, 1], [-1, 1, -1], [1, 0, 0]);
+      wall4 = new Wall([1, 0, 1], [-1, 1, 1], [0, 0, -1]);
       flat = new Flat([-1, 0, 1], [1, 0, -1], 0, [0, 1, 0]);
 
       //get uniform location for vertex shader
@@ -222,7 +224,7 @@ void main(){
       // gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
       gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
       gl.uniformMatrix4fv(u_view, false, flatten(lookat));
-      gl.uniform3fv(this.reverseLightDirectionLocation, normalize([0.0, 0.7, 1.0]));
+      gl.uniform3fv(this.reverseLightDirectionLocation, normalize([0.5, 0.7, 1.0]));
       // gl.uniform4fv(u_color, flatten(ground.grid.color));
 
       /*======== Associating shaders to buffer objects ========*/
@@ -269,6 +271,14 @@ void main(){
 
       wall2.associateBuffers();
       wall2.setUniforms();
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      wall3.associateBuffers();
+      wall3.setUniforms();
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      wall4.associateBuffers();
+      wall4.setUniforms();
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       flat.associateBuffers();
