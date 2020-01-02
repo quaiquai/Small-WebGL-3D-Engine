@@ -120,8 +120,6 @@ class Cube extends Primitives{
     this.color = [
       Math.random(),  Math.random(),  Math.random(),  1.0,    // Front face: white
     ];
-    this.genBuffers();
-    this.genUniforms();
     this.model = mat4();
   }
 }
@@ -139,7 +137,7 @@ class Wall extends Primitives{
       this.top_right[0], this.top_right[1], this.top_right[2]
     ];
     this.color = [
-      Math.random(),  Math.random(),  Math.random(),  1.0
+      1.0,  0.8,  0.3,  1.0
     ];
     this.normals = [
       dir[0], dir[1], dir[2],
@@ -147,8 +145,6 @@ class Wall extends Primitives{
       dir[0], dir[1], dir[2],
       dir[0], dir[1], dir[2]
     ];
-    this.genBuffers();
-    this.genUniforms();
     this.model = mat4();
   }
 }
@@ -167,7 +163,7 @@ class Flat extends Primitives{
       this.top_right[0], h, this.top_right[2]
     ];
     this.color = [
-      Math.random(),  Math.random(),  Math.random(),  1.0
+      1.0,  1.0,  1.0,  1.0
     ];
     this.normals = [
       dir[0], dir[1], dir[2],
@@ -175,8 +171,6 @@ class Flat extends Primitives{
       dir[0], dir[1], dir[2],
       dir[0], dir[1], dir[2]
     ];
-    this.genBuffers();
-    this.genUniforms();
     this.model = mat4();
   }
 }

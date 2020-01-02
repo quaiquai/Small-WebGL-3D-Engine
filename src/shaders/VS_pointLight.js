@@ -21,4 +21,3 @@ var VS_pointLighting = `
 		v_surfaceToLight = u_lightPosition - surfaceWorldPosition; //direction vector from light to surface of primitive
 		v_surfaceToView = u_viewPosition - surfaceWorldPosition; //direction vector from view to surface of primitive
 	}`;
-
