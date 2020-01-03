@@ -1,8 +1,14 @@
 
 class Primitives{
-  constructor(type, sz){
+  constructor(type, sz, textureImage){
     this.primitiveType = type;
     sz ? this.size = sz : this.size = null;
+    if(textureImage){
+      this.im = new Texture(textureImage);
+      //pass the texture object as a parameter
+      //so the async call can access the properties of it
+      this.im.loadTexture(this.im);
+    }
   }
 
   genBuffers(){
@@ -47,12 +53,15 @@ class Primitives{
   setUniforms(){
     gl.uniformMatrix4fv(this.u_model, false, flatten(this.model));
     gl.uniform4fv(this.u_color, this.color);
+    if(this.im){
+      this.im.bindTexture();
+    }
   }
 }
 
 class Cube extends Primitives{
-  constructor(sz){
-    super("Cube", sz);
+  constructor(sz, textureImagePath){
+    super("Cube", sz, textureImagePath);
     this.vertices = [
       // Front face
       -sz, 0,  sz,
@@ -164,9 +173,15 @@ class Cube extends Primitives{
       0, 0,
       1, 0
     ]
-    this.color = [
-      Math.random(),  Math.random(),  Math.random(),  1.0,    // Front face: white
-    ];
+    if(textureImagePath){
+      this.color = [
+        0.0, 0.0, 0.0, 0.0
+      ];
+    } else {
+      this.color = [
+        Math.random(),  Math.random(),  Math.random(),  1.0
+      ];
+    }
     this.model = mat4();
   }
 }

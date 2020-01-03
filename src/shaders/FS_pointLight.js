@@ -37,8 +37,7 @@ var FS_pointLighting = `
 			//to the color of the object http://learnwebgl.brown37.net/09_lights/lights_attenuation.html
 			float attenuation = clamp(0.5 / surfaceToLightDistance, 0.0, 1.0);
 
-  		gl_FragColor = u_color;
-			gl_FragColor = texture2D(u_texture, v_texcoord);
+			gl_FragColor = u_color + texture2D(u_texture, v_texcoord);
 
   		//Lets multiply just the color portion (not the alpha)
   		//by the light

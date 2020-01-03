@@ -191,3 +191,6 @@ function makeOrtho(left, right, bottom, top, znear, zfar)
 	       [0, 0, 0, 1]]);
 }
 
+function isPowerOf2(value) {
+    return (value & (value - 1)) === 0;
+}
