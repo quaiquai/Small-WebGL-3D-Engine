@@ -136,43 +136,45 @@ class Cube extends Primitives{
       -1, 0, 0,
       -1, 0, 0
     ];
-    this.texCoords = [
-      //Front face
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0,
+    if(textureImagePath){
+      this.texCoords = [
+        //Front face
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0,
 
-      //Back face
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0,
+        //Back face
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0,
 
-      //Top face
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0,
+        //Top face
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0,
 
-      //Bottom face
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0,
+        //Bottom face
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0,
 
-      //Right face
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0,
+        //Right face
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0,
 
-      //left face
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0
-    ]
+        //left face
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0
+      ];
+    }
     if(textureImagePath){
       this.color = [
         0.0, 0.0, 0.0, 0.0
@@ -187,52 +189,80 @@ class Cube extends Primitives{
 }
 
 class Wall extends Primitives{
-  constructor(bottom_l, top_r, dir){
-    super("Wall");
+  constructor(bottom_l, top_r, dir, textureImagePath){
+    super("Wall", null, textureImagePath);
     this.bottom_corner = bottom_l;
     this.top_right = top_r;
     this.direction = dir;
     this.vertices = [
       this.bottom_corner[0], this.bottom_corner[1], this.bottom_corner[2],
-      this.bottom_corner[0], this.top_right[1], this.bottom_corner[2],
       this.top_right[0], this.bottom_corner[1], this.top_right[2],
+      this.bottom_corner[0], this.top_right[1], this.bottom_corner[2],
       this.top_right[0], this.top_right[1], this.top_right[2]
     ];
-    this.color = [
-      1.0,  0.8,  0.3,  1.0
-    ];
+    if(textureImagePath){
+      this.color = [
+        0.0, 0.0, 0.0, 0.0
+      ];
+    } else {
+      this.color = [
+        1.0,  0.8,  0.3,  1.0
+      ];
+    }
     this.normals = [
       dir[0], dir[1], dir[2],
       dir[0], dir[1], dir[2],
       dir[0], dir[1], dir[2],
       dir[0], dir[1], dir[2]
     ];
+    if(textureImagePath){
+      this.texCoords = [
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0
+      ];
+    }
     this.model = mat4();
   }
 }
 
 class Flat extends Primitives{
-  constructor(bottom_l, top_r, h, dir){
-    super("Flat");
+  constructor(bottom_l, top_r, h, dir, textureImagePath){
+    super("Flat", null, textureImagePath);
     this.bottom_corner = bottom_l;
     this.top_right = top_r;
     this.direction = dir;
     this.height = h
     this.vertices = [
       this.bottom_corner[0], h, this.bottom_corner[2],
-      this.bottom_corner[0], h, this.top_right[2],
       this.top_right[0], h, this.bottom_corner[2],
+      this.bottom_corner[0], h, this.top_right[2],
       this.top_right[0], h, this.top_right[2]
     ];
-    this.color = [
-      1.0,  1.0,  1.0,  1.0
-    ];
+    if(textureImagePath){
+      this.color = [
+        0.0, 0.0, 0.0, 0.0
+      ];
+    } else {
+      this.color = [
+        1.0,  1.0,  1.0,  1.0
+      ];
+    }
     this.normals = [
       dir[0], dir[1], dir[2],
       dir[0], dir[1], dir[2],
       dir[0], dir[1], dir[2],
       dir[0], dir[1], dir[2]
     ];
+    if(textureImagePath){
+      this.texCoords = [
+        0, 2,
+        2, 2,
+        0, 0,
+        2, 0
+      ];
+    }
     this.model = mat4();
   }
 }

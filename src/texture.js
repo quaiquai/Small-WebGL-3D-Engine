@@ -20,6 +20,8 @@ class Texture{
       // Check if the image is a power of 2 in both dimensions.
       if (isPowerOf2(im.image.width) && isPowerOf2(im.image.height)) {
          // Yes, it's a power of 2. Generate mips.
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
          gl.generateMipmap(gl.TEXTURE_2D);
       } else {
          // No, it's not a power of 2. Turn off mips and set wrapping to clamp to edge

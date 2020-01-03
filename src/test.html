@@ -151,23 +151,23 @@
       cube.genBuffers();
       cube.genUniforms();
 
-      wall = new Wall([-1, 0, -1], [1, 1, -1], [0, 0, 1]);
+      wall = new Wall([-1, 0, -1], [1, 1, -1], [0, 0, 1], "../images/brickWall.jpg");
       wall.genBuffers();
       wall.genUniforms();
 
-      wall2 = new Wall([1, 0, -1], [1, 1, 1], [-1, 0, 0]);
+      wall2 = new Wall([1, 0, -1], [1, 1, 1], [-1, 0, 0], "../images/brickWall.jpg");
       wall2.genBuffers();
       wall2.genUniforms();
 
-      wall3 = new Wall([-1, 0, 1], [-1, 1, -1], [1, 0, 0]);
+      wall3 = new Wall([-1, 0, 1], [-1, 1, -1], [1, 0, 0], "../images/brickWall.jpg");
       wall3.genBuffers();
       wall3.genUniforms();
 
-      wall4 = new Wall([1, 0, 1], [-1, 1, 1], [0, 0, -1]);
+      wall4 = new Wall([1, 0, 1], [-1, 1, 1], [0, 0, -1], "../images/brickWall.jpg");
       wall4.genBuffers();
       wall4.genUniforms();
 
-      flat = new Flat([-1, 0, 1], [1, 0, -1], 0, [0, 1, 0]);
+      flat = new Flat([-1, 0, 1], [1, 0, -1], 0, [0, 1, 0], "../images/concreteFloor.jpg");
       flat.genBuffers();
       flat.genUniforms();
 
@@ -246,7 +246,7 @@
       // }
 
       cube.associateBuffers();
-      cube.model = mult(cube.model, rotate(0.5, 0.0, 1.0, 0.0));
+      // cube.model = mult(cube.model, rotate(0.5, 0.0, 1.0, 0.0));
       cube.setUniforms();
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
 
