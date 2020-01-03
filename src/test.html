@@ -5,7 +5,6 @@
 <script type="text/javascript" src="../utils/initShaders.js"></script>
 <script type="text/javascript" src="../math/MV.js"></script>
 <script type="text/javascript" src="../math/Mat4.js"></script>
-<script type="text/javascript" src="plane.js"></script>
 <script type="text/javascript" src="camera.js"></script>
 <script type="text/javascript" src="primitives.js"></script>
 <script type="text/javascript" src="particleStream.js"></script>
@@ -120,6 +119,24 @@
       light.associateShaders();
       light.genUniforms();
 
+      // Create a texture.
+      var texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+
+      // Fill the texture with a 1x1 blue pixel.
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                    new Uint8Array([0, 0, 255, 255]));
+
+      // Asynchronously load an image
+      var image = new Image();
+      image.src = "../images/grassBlock.jpg";
+      image.addEventListener('load', function() {
+        // Now that the image has loaded make copy it to the texture.
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+      });
+
       cube = new Cube(0.2);
       cube.genBuffers();
       cube.genUniforms();
@@ -150,14 +167,10 @@
       u_view = gl.getUniformLocation(program, "u_view");
       // u_color = gl.getUniformLocation(program, "u_color");
 
-      // Create an empty buffer object to store the vertex buffer
+      //Create an empty buffer object to store the vertex buffer
       //Bind appropriate array buffer to it
-      // Pass the vertex data to the buffer
-      // Unbind the buffer
-      //ground
-      // gl.bindBuffer(gl.ARRAY_BUFFER, ground.vertexBuffer);
-      // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ground.grid.vertices), gl.STATIC_DRAW);
-      // gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      //Pass the vertex data to the buffer
+      //Unbind the buffer
 
       //particle
       // particle_buffer = gl.createBuffer();
@@ -183,8 +196,6 @@
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       tick();
 
-      // // Turn on culling. By default backfacing triangles
-      // // will be culled.
       // gl.enable(gl.CULL_FACE);
 
       // // Enable the depth buffer
@@ -210,13 +221,6 @@
       // Get the attribute location
       // Point an attribute to the currently bound VBO
       // Enable the attribute
-      //ground
-      // gl.bindBuffer(gl.ARRAY_BUFFER, ground.vertexBuffer);
-      // var coord = gl.getAttribLocation(program, "coordinates");
-      // gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-      // gl.enableVertexAttribArray(coord);
-      // gl.drawArrays(gl.LINES, 0, ground.grid.gridLines);
-
       //particles
       // gl.bindBuffer(gl.ARRAY_BUFFER, particle_buffer);
       // var coord = gl.getAttribLocation(program, "coordinates");

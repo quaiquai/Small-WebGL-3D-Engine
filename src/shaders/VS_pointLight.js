@@ -1,6 +1,7 @@
 var VS_pointLighting = `
 	attribute vec3 coordinates;
 	attribute vec3 a_normal;
+	attribute vec2 a_texcoord;
 
 	uniform mat4 u_model;
 	uniform mat4 u_view;
@@ -11,6 +12,7 @@ var VS_pointLighting = `
 	varying vec3 v_normal;
 	varying vec3 v_surfaceToLight;
 	varying vec3 v_surfaceToView;
+	varying vec2 v_texcoord;
 
 	void main(){
 		vec4 position = vec4(u_projection * u_view * u_model * vec4(coordinates, 1.0));
@@ -20,4 +22,5 @@ var VS_pointLighting = `
 		v_normal = mat3(u_model) * a_normal;
 		v_surfaceToLight = u_lightPosition - surfaceWorldPosition; //direction vector from light to surface of primitive
 		v_surfaceToView = u_viewPosition - surfaceWorldPosition; //direction vector from view to surface of primitive
+		v_texcoord = a_texcoord;
 	}`;

@@ -3,11 +3,13 @@ var FS_pointLighting = `
 	varying vec3 v_normal;
 	varying vec3 v_surfaceToLight;
 	varying vec3 v_surfaceToView;
+	varying vec2 v_texcoord;
 
 	uniform vec4 u_color;
 	uniform vec3 u_lightColor;
 	uniform vec3 u_specularColor;
 	uniform float u_shininess;
+	uniform sampler2D u_texture;
 
 	void main(){
   		// because v_normal is a varying it's interpolated
@@ -36,6 +38,7 @@ var FS_pointLighting = `
 			float attenuation = clamp(0.5 / surfaceToLightDistance, 0.0, 1.0);
 
   		gl_FragColor = u_color;
+			gl_FragColor = texture2D(u_texture, v_texcoord);
 
   		//Lets multiply just the color portion (not the alpha)
   		//by the light

@@ -52,7 +52,6 @@ class Camera{
       };
 
       // pointer lock event listeners
-
       // Hook pointer lock state change events for different browsers
       document.addEventListener('pointerlockchange', lockChangeAlert, false);
       document.addEventListener('mozpointerlockchange', lockChangeAlert, false);

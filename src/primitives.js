@@ -15,6 +15,11 @@ class Primitives{
     gl.bindBuffer(gl.ARRAY_BUFFER, this.nBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.normals), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    this.tBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.tBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.texCoords), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
   }
 
   associateBuffers(){
@@ -27,6 +32,11 @@ class Primitives{
     var norms = gl.getAttribLocation(program, "a_normal");
     gl.vertexAttribPointer(norms, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(norms);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.tBuffer);
+    var texs = gl.getAttribLocation(program, "a_texcoord");
+    gl.vertexAttribPointer(texs, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(texs);
   }
 
   genUniforms(){
@@ -51,10 +61,10 @@ class Cube extends Primitives{
       sz,  sz * 2,  sz,
 
       // Back face
-      -sz, 0, -sz,
-      -sz,  sz * 2, -sz,
-       sz,  0, -sz,
-       sz, sz * 2, -sz,
+      sz, 0, -sz,
+      -sz,  0, -sz,
+      sz,  sz * 2, -sz,
+       -sz, sz * 2, -sz,
 
       // Top face
       -sz,  sz * 2, -sz,
@@ -69,10 +79,10 @@ class Cube extends Primitives{
       sz, 0,  sz,
 
       // Right face
-       sz, 0, -sz,
-       sz,  0, sz,
-       sz,  sz * 2,  -sz,
-       sz, sz * 2,  sz,
+       sz, 0, sz,
+       sz,  0, -sz,
+       sz,  sz * 2,  sz,
+       sz, sz * 2,  -sz,
 
       // Left face
       -sz, 0, -sz,
@@ -117,6 +127,43 @@ class Cube extends Primitives{
       -1, 0, 0,
       -1, 0, 0
     ];
+    this.texCoords = [
+      //Front face
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0,
+
+      //Back face
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0,
+
+      //Top face
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0,
+
+      //Bottom face
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0,
+
+      //Right face
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0,
+
+      //left face
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0
+    ]
     this.color = [
       Math.random(),  Math.random(),  Math.random(),  1.0,    // Front face: white
     ];
