@@ -89,8 +89,7 @@ class Particle{
       this.color[3] = this.lifeTime; //change the alpha channel of the particle by time alive
     }
 
-
-    //Update variables after particle death for a continuous stream of particles
+    // Update variables after particle death for a continuous stream of particles
     if(this.lifeTime <= 0){
       this.position.x = 0;
       this.position.y = 0;
@@ -107,13 +106,6 @@ class Particle{
   }
 
   checkCollision(mouseyNDC, mousexNDC){
-    if (this.relation.y + this.position.y < mouseyNDC + 0.02 &&
-        this.relation.x + this.position.x > mousexNDC - 0.02 &&
-        this.relation.y + this.position.y > mouseyNDC - 0.02 &&
-        this.relation.x + this.position.x < mousexNDC){
-      this.velocity.y *= this.restitution;
-      this.position.y = -this.relation.y + mouseyNDC + 0.02;
-    }
     if (this.relation.y + this.position.y < 0) { //difference of the stream position and the distance traveled from source
       this.velocity.y *= this.restitution;
       this.position.y = -this.relation.y - 0; //find the distance from bottom of canvas to source to reposition after collision
