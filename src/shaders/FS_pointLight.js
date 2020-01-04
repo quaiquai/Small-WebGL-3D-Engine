@@ -11,6 +11,7 @@ var FS_pointLighting = `
 	uniform float u_shininess;
 	uniform sampler2D u_texture;
 
+
 	void main(){
   		// because v_normal is a varying it's interpolated
   		// so it will not be a unit vector. Normalizing it
@@ -38,6 +39,8 @@ var FS_pointLighting = `
 			float attenuation = clamp(0.5 / surfaceToLightDistance, 0.0, 1.0);
 
 			gl_FragColor = u_color + texture2D(u_texture, v_texcoord);
+			// gl_FragColor = texture2D(u_texture, gl_PointCoord);
+
 
   		//Lets multiply just the color portion (not the alpha)
   		//by the light

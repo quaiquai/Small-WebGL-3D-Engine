@@ -1,5 +1,5 @@
 class ParticleStream{
-  constructor(x, y, l, count){
+  constructor(x, y, l, count, textureImagePath){
     this.particleCount = count;
     this.particleList = [];
     this.particleStreamVerts = [];
@@ -10,7 +10,8 @@ class ParticleStream{
       this.particleStreamVerts.push(x, y, 0.0);
       this.particleStreamNorms.push(0, 0, -1);
     }
-    this.im = null;
+    this.im = new Texture(textureImagePath);
+    this.im.loadTexture(this.im);
   }
 
   genBuffers(){
