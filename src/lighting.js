@@ -1,19 +1,6 @@
 class Lighting {
   constructor(type){
     this.lightingType = type;
-    if(this.lightingType == "directional"){
-      this.lightingVS = VS_directionalLighting;
-      this.lightingFS = FS_directionalLighting;
-    }
-    else if (this.lightingType == "point") {
-      this.lightingVS = VS_pointLighting;
-      this.lightingFS = FS_pointLighting;
-    }
-  }
-
-  associateShaders(){
-    program = createShaders(this.lightingVS, this.lightingFS);
-    gl.useProgram(program);
   }
 
   genUniforms(){

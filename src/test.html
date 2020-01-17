@@ -11,6 +11,7 @@
 <script type="text/javascript" src="particle.js"></script>
 <script type="text/javascript" src="lighting.js"></script>
 <script type="text/javascript" src="texture.js"></script>
+<script type="text/javascript" src="./shaders/shaders.js"></script>
 <script type="text/javascript" src="shaders/FS_directionalLight.js"></script>
 <script type="text/javascript" src="shaders/VS_directionalLight.js"></script>
 <script type="text/javascript" src="shaders/FS_pointLight.js"></script>
@@ -95,6 +96,10 @@
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
     var eye = vec3(0.0, 0.2, 1.0);
+    var currentFrame, delta;
+    var fps = 100;
+    var interval = 1000/fps;
+    var then = Date.now();
     var reverseLightDirectionLocation;
     var lightWorldPositionLocation;
     var viewPosition, shininessLocation, lightColorLocation, specularColorLocation;
@@ -112,17 +117,18 @@
       gl.enable(gl.DEPTH_TEST);
 
       /*==========Defining and storing the geometry=======*/
-      camera = new Camera("fps")
+      camera = new Camera("fps");
+
+      associateShaders(VS_pointLighting, FS_pointLighting);
 
       light = new Lighting("point");
-      light.associateShaders();
       light.genUniforms();
 
       // particle = new ParticleStream(0.0, 0.9, 10, 100, "../images/grassBlock.jpg")
       // particle.genBuffers();
       // particle.genUniforms();
 
-      cube = new Cube(0.1, "../images/grassBlock.jpg");
+      cube = new Cube(0.1, "../images/portalCube.jpg");
       cube.genBuffers();
       cube.genUniforms();
 
@@ -158,7 +164,6 @@
       //Bind appropriate array buffer to it
       //Pass the vertex data to the buffer
       //Unbind the buffer
-
       window.onmousemove = function(event){
         var mousex = event.clientX;
         var mousey = event.clientY;
@@ -172,75 +177,82 @@
     }
 
     function render(event){
+      requestAnimationFrame(render);
       now += 0.01;
       dt = 0.01;
-      // Clear the canvas AND the depth buffer.
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-      tick();
+      currentFrame = Date.now();
+      delta = currentFrame - then;
 
-      // gl.enable(gl.CULL_FACE);
+      if (delta > interval){
+        then = currentFrame - (delta % interval);
+        console.log(then)
+        // Clear the canvas AND the depth buffer.
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        tick();
 
-      // // Enable the depth buffer
-      gl.enable(gl.DEPTH_TEST);
-      lookat = lookAt(eye, vec3(eye[0] + at[0], eye[1] + (-at[1]), eye[2] + at[2]), vec3(0.0, 1.0, 0.0));
+        // gl.enable(gl.CULL_FACE);
 
-      //****************************************************************
-      //for orbital
-      // lookat = lookAt(vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
-      // let yrotate = rotate(yaw, 0.0, 1.0, 0.0);
-      // let xrotate = rotate(pitch, 1.0, 0.0, 0.0);
-      // lookat = mult(lookat, xrotate);
-      // lookat = mult(lookat, yrotate);
+        // // Enable the depth buffer
+        gl.enable(gl.DEPTH_TEST);
+        lookat = lookAt(eye, vec3(eye[0] + at[0], eye[1] + (-at[1]), eye[2] + at[2]), vec3(0.0, 1.0, 0.0));
 
-      // gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
-      gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
-      gl.uniformMatrix4fv(u_view, false, flatten(lookat));
+        //****************************************************************
+        //for orbital
+        // lookat = lookAt(vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+        // let yrotate = rotate(yaw, 0.0, 1.0, 0.0);
+        // let xrotate = rotate(pitch, 1.0, 0.0, 0.0);
+        // lookat = mult(lookat, xrotate);
+        // lookat = mult(lookat, yrotate);
 
-      light.setUniforms();
+        // gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
+        gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
+        gl.uniformMatrix4fv(u_view, false, flatten(lookat));
 
-      /*======== Associating shaders to buffer objects ========*/
-      // Bind vertex buffer object
-      // Get the attribute location
-      // Point an attribute to the currently bound VBO
-      // Enable the attribute
-      // particle.associateBuffers();
-      // for (let i = 0; i < particle.particleCount; i++){
-      //   particle.particleList[i].update(dt);
-      //   particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
-      //   particle.setUniforms(particle.particleList[i].translation.array, particle.particleList[i].color);
-      //   gl.drawArrays(gl.POINTS, i, 1);
-      // }
+        light.setUniforms();
 
-      cube.associateBuffers();
-      // cube.model = mult(cube.model, rotate(0.5, 0.0, 1.0, 0.0));
-      cube.setUniforms();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
+        /*======== Associating shaders to buffer objects ========*/
+        // Bind vertex buffer object
+        // Get the attribute location
+        // Point an attribute to the currently bound VBO
+        // Enable the attribute
+        // particle.associateBuffers();
+        // for (let i = 0; i < particle.particleCount; i++){
+        //   particle.particleList[i].update(dt);
+        //   particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
+        //   particle.setUniforms(particle.particleList[i].translation.array, particle.particleList[i].color);
+        //   gl.drawArrays(gl.POINTS, i, 1);
+        // }
 
-      wall.associateBuffers();
-      wall.setUniforms();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        cube.associateBuffers();
+        // cube.model = mult(cube.model, rotate(0.5, 0.0, 1.0, 0.0));
+        cube.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
 
-      wall2.associateBuffers();
-      wall2.setUniforms();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        wall.associateBuffers();
+        wall.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      wall3.associateBuffers();
-      wall3.setUniforms();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        wall2.associateBuffers();
+        wall2.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      wall4.associateBuffers();
-      wall4.setUniforms();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        wall3.associateBuffers();
+        wall3.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      flat.associateBuffers();
-      flat.setUniforms();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        wall4.associateBuffers();
+        wall4.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      flat2.associateBuffers();
-      flat2.setUniforms();
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        flat.associateBuffers();
+        flat.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      requestAnimationFrame(render)
+        flat2.associateBuffers();
+        flat2.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+      
     }
   </script>
 </body>
