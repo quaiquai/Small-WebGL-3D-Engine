@@ -1,4 +1,4 @@
-function associateShaders(vs, fs){
-    program = createShaders(vs, fs);
-    gl.useProgram(program);
- }
+function useProgram(pro){
+  gl.useProgram(pro)
+  currentShader = pro;
+}

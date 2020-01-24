@@ -16,6 +16,8 @@
 <script type="text/javascript" src="shaders/VS_directionalLight.js"></script>
 <script type="text/javascript" src="shaders/FS_pointLight.js"></script>
 <script type="text/javascript" src="shaders/VS_pointLight.js"></script>
+<script type="text/javascript" src="shaders/FS_lamp.js"></script>
+<script type="text/javascript" src="shaders/VS_lamp.js"></script>
 
 <head>
 <title>Project LINK</title>
@@ -70,11 +72,12 @@
     var gl;
     var u_color;
     var ground;
-    var u_model, u_view, u_projection;
+    var u_view_point, u_projection_point;
+    var u_view_lamp, u_projection_lamp;
     var canvas;
     var now, dt;
     var vertex_buffer, color_buffer, line_buffer, line_color_buffer;
-    var program;
+    // var program;
     var dragging;
     var oldx, x, oldy, y;
     var front = vec3(0.0, 0.0, -1.0);
@@ -91,7 +94,7 @@
     var bobs = 0.2;
     var vBufferId, indexBuffer;
     var keyState = {};
-    var cube, cubeLight, light;
+    var cube, cubeLight, light, lamp;
     var wall, wall2, wall3, wall4, flat, flat2;
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
@@ -103,6 +106,7 @@
     var reverseLightDirectionLocation;
     var lightWorldPositionLocation;
     var viewPosition, shininessLocation, lightColorLocation, specularColorLocation;
+    var pointlightShader, lampShader, currentShader;
     /*================Creating a canvas=================*/
     window.onload = function init(event){
       canvas = document.getElementById("gl-canvas"); //get the canvas instance
@@ -119,19 +123,28 @@
       /*==========Defining and storing the geometry=======*/
       camera = new Camera("fps");
 
-      associateShaders(VS_pointLighting, FS_pointLighting);
+      pointlightShader = createShaders(VS_pointLighting, FS_pointLighting);
+      lampShader = createShaders(VS_lamp, FS_lamp);
+      useProgram(pointlightShader)
+      // associateShaders(VS_pointLighting, FS_pointLighting);
 
       light = new Lighting("point");
       light.genUniforms();
 
-      // particle = new ParticleStream(0.0, 0.9, 10, 100, "../images/grassBlock.jpg")
-      // particle.genBuffers();
-      // particle.genUniforms();
+      particle = new ParticleStream(0.0, 0.9, 10, 100, "../images/grassBlock.jpg")
+      particle.genBuffers();
+      particle.genUniforms();
 
-      cube = new Cube(0.1, "../images/portalCube.jpg");
+      cube = new Cube(0.1, "../images/grassBlock.jpg");
       cube.genBuffers();
       cube.genUniforms();
 
+      useProgram(lampShader)
+      lamp = new Cube(0.04);
+      lamp.genBuffers();
+      lamp.genUniforms();
+
+      useProgram(pointlightShader)
       wall = new Wall([-1, 0, -1], [1, 1, -1], [0, 0, 1], "../images/brickWall.jpg");
       wall.genBuffers();
       wall.genUniforms();
@@ -157,8 +170,12 @@
       flat2.genUniforms();
 
       //get uniform location for vertex shader
-      u_projection = gl.getUniformLocation(program, "u_projection");
-      u_view = gl.getUniformLocation(program, "u_view");
+      u_projection_point = gl.getUniformLocation(currentShader, "u_projection");
+      u_view_point = gl.getUniformLocation(currentShader, "u_view");
+
+      useProgram(lampShader)
+      u_projection_lamp = gl.getUniformLocation(currentShader, "u_projection");
+      u_view_lamp = gl.getUniformLocation(currentShader, "u_view");
 
       //Create an empty buffer object to store the vertex buffer
       //Bind appropriate array buffer to it
@@ -185,7 +202,7 @@
 
       if (delta > interval){
         then = currentFrame - (delta % interval);
-        console.log(then)
+        useProgram(pointlightShader);
         // Clear the canvas AND the depth buffer.
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         tick();
@@ -196,6 +213,8 @@
         gl.enable(gl.DEPTH_TEST);
         lookat = lookAt(eye, vec3(eye[0] + at[0], eye[1] + (-at[1]), eye[2] + at[2]), vec3(0.0, 1.0, 0.0));
 
+
+
         //****************************************************************
         //for orbital
         // lookat = lookAt(vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
@@ -204,9 +223,8 @@
         // lookat = mult(lookat, xrotate);
         // lookat = mult(lookat, yrotate);
 
-        // gl.uniformMatrix4fv(u_model, false, flatten(mat4()));
-        gl.uniformMatrix4fv(u_projection, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
-        gl.uniformMatrix4fv(u_view, false, flatten(lookat));
+        gl.uniformMatrix4fv(u_projection_point, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
+        gl.uniformMatrix4fv(u_view_point, false, flatten(lookat));
 
         light.setUniforms();
 
@@ -215,13 +233,13 @@
         // Get the attribute location
         // Point an attribute to the currently bound VBO
         // Enable the attribute
-        // particle.associateBuffers();
-        // for (let i = 0; i < particle.particleCount; i++){
-        //   particle.particleList[i].update(dt);
-        //   particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
-        //   particle.setUniforms(particle.particleList[i].translation.array, particle.particleList[i].color);
-        //   gl.drawArrays(gl.POINTS, i, 1);
-        // }
+        particle.associateBuffers();
+        for (let i = 0; i < particle.particleCount; i++){
+          particle.particleList[i].update(dt);
+          particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
+          particle.setUniforms(particle.particleList[i].translation.array, particle.particleList[i].color);
+          gl.drawArrays(gl.POINTS, i, 1);
+        }
 
         cube.associateBuffers();
         // cube.model = mult(cube.model, rotate(0.5, 0.0, 1.0, 0.0));
@@ -251,8 +269,17 @@
         flat2.associateBuffers();
         flat2.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        useProgram(lampShader);
+        gl.uniformMatrix4fv(u_projection_lamp, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
+        gl.uniformMatrix4fv(u_view_lamp, false, flatten(lookat));
+        // lamp.model = translate(0.5, (Math.sin(now) + 1.0) / 2.2, -0.5)//uncomment for moving lamp
+        lamp.model = translate(0.5, 0.5, -0.5)
+        lamp.associateBuffers();
+        lamp.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
       }
-      
+
     }
   </script>
 </body>
