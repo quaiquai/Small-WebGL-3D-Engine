@@ -98,7 +98,7 @@ window.addEventListener('keyup',function(e){
     keyState[e.keyCode || e.which] = false;
 },true);
 
-function tick(){
+function movementTick(){
   if (keyState[38] || keyState[87]){
     forwardX += xDirection * 0.02; // move in forward in direction camera
     forwardZ += zDirection * 0.02; // move in forward in direction camera
