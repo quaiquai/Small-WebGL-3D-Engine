@@ -2,6 +2,7 @@ var yaw = -90.0;
 var pitch = 0.0;
 var lastX;
 var lastY;
+var xDirection, zDirection;
 
 class Camera{
 
@@ -59,8 +60,8 @@ class Camera{
       function lockChangeAlert() {
         if (document.pointerLockElement === canvas ||
             document.mozPointerLockElement === canvas) {
-          console.log('The pointer lock status is now locked');
-          document.addEventListener("mousemove", updatePosition, false);
+              console.log('The pointer lock status is now locked');
+              document.addEventListener("mousemove", updatePosition, false);
         } else {
           console.log('The pointer lock status is now unlocked');
           document.removeEventListener("mousemove", updatePosition, false);
@@ -73,7 +74,17 @@ class Camera{
         yaw += xscale * event.movementX;
         pitch += yscale * event.movementY;
         pitch = Math.max(Math.min(pitch, 89), -89);
-        at = vec3(Math.cos((Math.PI/180) *pitch) * Math.cos((Math.PI/180) * yaw), Math.sin((Math.PI/180) * pitch), Math.cos((Math.PI/180) *pitch) * Math.sin((Math.PI/180) *yaw));
+
+        //X and Z directions that stay on the XZ plane for
+        //Constant velocity when walking in direction that is not
+        //effected by the pitch of the camera when added to the current position
+        xDirection = Math.cos((Math.PI/180) *yaw)
+        zDirection = Math.sin((Math.PI/180) *yaw)
+
+        //The position the camera is looking for fps movement
+        at = vec3(Math.cos((Math.PI/180) *pitch) * Math.cos((Math.PI/180) *yaw),
+                  Math.sin((Math.PI/180) *pitch),
+                  Math.cos((Math.PI/180) *pitch) * Math.sin((Math.PI/180) *yaw));
       }
     }
   }
@@ -89,13 +100,13 @@ window.addEventListener('keyup',function(e){
 
 function tick(){
   if (keyState[38] || keyState[87]){
-    forwardX += at[0] * 0.015; // move in forward in direction camera
-    forwardZ += at[2] * 0.015; // move in forward in direction camera
+    forwardX += xDirection * 0.02; // move in forward in direction camera
+    forwardZ += zDirection * 0.02; // move in forward in direction camera
     bobs += 0.2;//for bobbing during walking
   }
   if (keyState[40] || keyState[83]){
-    forwardX -= at[0] * 0.015; // move in backwards in direction camera
-    forwardZ -= at[2] * 0.015; // move in backwards in direction camera
+    forwardX -= at[0] * 0.02; // move in backwards in direction camera
+    forwardZ -= at[2] * 0.02; // move in backwards in direction camera
     bobs -= 0.2;//for bobbing during walking
   }
   // if (keyState[65] || keyState[65]){
@@ -108,7 +119,6 @@ function tick(){
   //   bobs += 0.1;//for bobbing during walking
   // }
   eye[0] = Math.sin(dy) * Math.cos(dx) + forwardX;
-  eye[1] = 0.01 * Math.cos(bobs) + 0.4; //0.25 for stationary
+  eye[1] = 0.01 * Math.cos(bobs) + 1.0; //0.25 for stationary and last constant for camera height
   eye[2] = Math.cos(dy) * Math.cos(dx) + forwardZ;
-  console.log()
 }

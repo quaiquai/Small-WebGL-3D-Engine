@@ -97,7 +97,7 @@
     var wall, wall2, wall3, wall4, flat, flat2;
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
-    var eye = vec3(0.0, 0.2, 1.0);
+    var eye = vec3(0.0, 1.0, 1.0);
     var currentFrame, delta;
     var fps = 60;
     var interval = 1000/fps;
@@ -144,27 +144,27 @@
       lamp.genUniforms();
 
       useProgram(pointlightShader)
-      wall = new Wall([-1, 0, -1], [1, 1, -1], [0, 0, 1], "../images/brickWall.jpg");
+      wall = new Wall([-2, 0, -2], [2, 2, -2], [0, 0, 1], "../images/brickWall.jpg");
       wall.genBuffers();
       wall.genUniforms();
 
-      wall2 = new Wall([1, 0, -1], [1, 1, 1], [-1, 0, 0], "../images/brickWall.jpg");
+      wall2 = new Wall([2, 0, -2], [2, 2, 2], [-1, 0, 0], "../images/brickWall.jpg");
       wall2.genBuffers();
       wall2.genUniforms();
 
-      wall3 = new Wall([-1, 0, 1], [-1, 1, -1], [1, 0, 0], "../images/brickWall.jpg");
+      wall3 = new Wall([-2, 0, 2], [-2, 2, -2], [1, 0, 0], "../images/brickWall.jpg");
       wall3.genBuffers();
       wall3.genUniforms();
 
-      wall4 = new Wall([1, 0, 1], [-1, 1, 1], [0, 0, -1], "../images/brickWall.jpg");
+      wall4 = new Wall([2, 0, 2], [-2, 2, 2], [0, 0, -1], "../images/brickWall.jpg");
       wall4.genBuffers();
       wall4.genUniforms();
 
-      flat = new Flat([-1, 0, 1], [1, 0, -1], 0, [0, 1, 0], "../images/concreteFloor.jpg");
+      flat = new Flat([-2, 0, 2], [2, 0, -2], 0, [0, 1, 0], "../images/concreteFloor.jpg");
       flat.genBuffers();
       flat.genUniforms();
 
-      flat2 = new Flat([-1, 0, 1], [1, 0, -1], 1, [0, -1, 0], "../images/concreteFloor.jpg");
+      flat2 = new Flat([-2, 0, 2], [2, 0, -2], 2, [0, -1, 0], "../images/concreteFloor.jpg");
       flat2.genBuffers();
       flat2.genUniforms();
 
