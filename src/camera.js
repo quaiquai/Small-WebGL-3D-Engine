@@ -5,8 +5,8 @@ var lastY;
 var xDirection, zDirection;
 
 class Camera{
-
   constructor(type){
+    this.cameraType = type;
     if(type === "orbital"){
       //*******************drag orbital camera*************
       canvas.onmousedown = function(event) {  //Mouse is pressed
@@ -98,15 +98,15 @@ window.addEventListener('keyup',function(e){
     keyState[e.keyCode || e.which] = false;
 },true);
 
-function movementTick(){
+function movementTick(camera){
   if (keyState[38] || keyState[87]){
     forwardX += xDirection * 0.02; // move in forward in direction camera
     forwardZ += zDirection * 0.02; // move in forward in direction camera
     bobs += 0.2;//for bobbing during walking
   }
   if (keyState[40] || keyState[83]){
-    forwardX -= at[0] * 0.02; // move in backwards in direction camera
-    forwardZ -= at[2] * 0.02; // move in backwards in direction camera
+    forwardX -= xDirection * 0.02; // move in backwards in direction camera
+    forwardZ -= zDirection * 0.02; // move in backwards in direction camera
     bobs -= 0.2;//for bobbing during walking
   }
   // if (keyState[65] || keyState[65]){
@@ -121,4 +121,17 @@ function movementTick(){
   eye[0] = Math.sin(dy) * Math.cos(dx) + forwardX;
   eye[1] = 0.01 * Math.cos(bobs) + 1.0; //0.25 for stationary and last constant for camera height
   eye[2] = Math.cos(dy) * Math.cos(dx) + forwardZ;
+  updateLookat(camera);
+}
+
+function updateLookat(camera){
+  if(camera.cameraType == "orbital"){
+    lookat = lookAt(vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+    let yrotate = rotate(yaw, 0.0, 1.0, 0.0);
+    let xrotate = rotate(pitch, 1.0, 0.0, 0.0);
+    lookat = mult(lookat, xrotate);
+    lookat = mult(lookat, yrotate);
+  }else{
+    lookat = lookAt(eye, vec3(eye[0] + at[0], eye[1] + (-at[1]), eye[2] + at[2]), vec3(0.0, 1.0, 0.0));
+  }
 }
