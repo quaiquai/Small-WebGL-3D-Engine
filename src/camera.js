@@ -89,14 +89,14 @@ window.addEventListener('keyup',function(e){
 
 function tick(){
   if (keyState[38] || keyState[87]){
-    forwardX += at[0] * 0.005; // move in forward in direction camera
-    forwardZ += at[2] * 0.005; // move in forward in direction camera
-    bobs += 0.1;//for bobbing during walking
+    forwardX += at[0] * 0.015; // move in forward in direction camera
+    forwardZ += at[2] * 0.015; // move in forward in direction camera
+    bobs += 0.2;//for bobbing during walking
   }
   if (keyState[40] || keyState[83]){
-    forwardX -= at[0] * 0.005; // move in backwards in direction camera
-    forwardZ -= at[2] * 0.005; // move in backwards in direction camera
-    bobs -= 0.1;//for bobbing during walking
+    forwardX -= at[0] * 0.015; // move in backwards in direction camera
+    forwardZ -= at[2] * 0.015; // move in backwards in direction camera
+    bobs -= 0.2;//for bobbing during walking
   }
   // if (keyState[65] || keyState[65]){
   //   forwardX += at[0] * 0.005; // move in forward in direction camera

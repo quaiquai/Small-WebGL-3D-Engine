@@ -11,7 +11,6 @@
 <script type="text/javascript" src="particle.js"></script>
 <script type="text/javascript" src="lighting.js"></script>
 <script type="text/javascript" src="texture.js"></script>
-<script type="text/javascript" src="./shaders/shaders.js"></script>
 <script type="text/javascript" src="shaders/FS_directionalLight.js"></script>
 <script type="text/javascript" src="shaders/VS_directionalLight.js"></script>
 <script type="text/javascript" src="shaders/FS_pointLight.js"></script>
@@ -100,7 +99,7 @@
     var at = vec3(0.0, 0.0, -1.0);
     var eye = vec3(0.0, 0.2, 1.0);
     var currentFrame, delta;
-    var fps = 100;
+    var fps = 60;
     var interval = 1000/fps;
     var then = Date.now();
     var reverseLightDirectionLocation;
@@ -196,15 +195,17 @@
     function render(event){
       requestAnimationFrame(render);
       now += 0.01;
-      dt = 0.01;
+
       currentFrame = Date.now();
       delta = currentFrame - then;
+
 
       if (delta > interval){
         then = currentFrame - (delta % interval);
         useProgram(pointlightShader);
         // Clear the canvas AND the depth buffer.
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        dt = 0.01;
         tick();
 
         // gl.enable(gl.CULL_FACE);

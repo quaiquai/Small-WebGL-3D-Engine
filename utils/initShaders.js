@@ -95,3 +95,8 @@ function createShaders (vs, fs) {
     }
     return program;
 }
+
+function useProgram(pro){
+  gl.useProgram(pro)
+  currentShader = pro;
+}
