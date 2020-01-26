@@ -17,6 +17,15 @@
 <script type="text/javascript" src="shaders/VS_pointLight.js"></script>
 <script type="text/javascript" src="shaders/FS_lamp.js"></script>
 <script type="text/javascript" src="shaders/VS_lamp.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.js"></script>
+<script
+  src="http://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous">
+</script>
+<script type="text/javascript" src="loadOBJ.js"></script>
+<script type="text/javascript" src="objLoader.js"></script>
+
 
 <head>
 <title>Project LINK</title>
@@ -94,7 +103,7 @@
     var vBufferId, indexBuffer;
     var keyState = {};
     var cube, cubeLight, light, lamp;
-    var wall, wall2, wall3, wall4, flat, flat2;
+    var wall, wall2, wall3, wall4, flat, flat2, house;
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
     var eye = vec3(0.0, 1.0, 1.0);
@@ -137,6 +146,17 @@
       cube = new Cube(0.1, "../images/grassBlock.jpg");
       cube.genBuffers();
       cube.genUniforms();
+
+      house = new LoadOBJ("../objects/Colt_Python.obj"); //create a new object to parse and render
+      var objurl = house.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
+      objurl = objurl.responseText // get the text from the ajax response
+
+      //Get the model information from the string from .obj
+      data = ObjLoader.domToMesh("house", objurl, true);
+      house.data = data;
+
+      house.genBuffers();
+      house.genUniforms();
 
       useProgram(lampShader)
       lamp = new Cube(0.04);
@@ -259,6 +279,17 @@
         flat2.associateBuffers();
         flat2.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        //This puts the gun model in the correct position for a fps style
+        //----------------------------------------------------------------
+        house.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
+        house.model = mult(house.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
+        house.model = mult(house.model, rotate(-pitch, 1.0, 0.0, 0.0))
+        house.model = mult(house.model, translate(10.0,-12.0,-25.0))
+        //----------------------------------------------------------------
+        house.associateBuffers();
+        house.setUniforms();
+        gl.drawElements(gl.TRIANGLES, house.data[0].length, gl.UNSIGNED_SHORT, 0);
 
         useProgram(lampShader);
         gl.uniformMatrix4fv(u_projection_lamp, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));

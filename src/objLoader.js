@@ -7,7 +7,7 @@ class ObjLoader{
 	static parseFromDom(elmID,flipYUV){ return ObjLoader.parseObjText(elmID,flipYUV); }
 
 	static parseObjText(txt,flipYUV){
-		txt = txt.trim() + "\n"; //add newline to be able to access last line in the for loop
+		txt = txt.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '') + "\n"; //add newline to be able to access last line in the for loop
 
 		var line,				//Line text from obj file
 			itm,				//Line split into an array
@@ -41,7 +41,7 @@ class ObjLoader{
 				case "v":
 					switch(line.charAt(1)){
 						case " ":
-						 	itm = line.split(" "); itm.shift();
+						 	itm = line.split(" "); itm.shift();itm.shift();
 							cVert.push(parseFloat(itm[0]) , parseFloat(itm[1]) , parseFloat(itm[2]) ); break;		//VERTEX
 						case "t":
 							itm = line.split(" "); itm.shift();
