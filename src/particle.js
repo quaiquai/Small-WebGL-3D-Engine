@@ -91,9 +91,10 @@ class Particle{
 
     // Update variables after particle death for a continuous stream of particles
     if(this.lifeTime <= 0){
-      this.position.x = 0;
-      this.position.y = 0;
-      this.position.z = 0;
+      this.position.x = Math.cos((Math.PI/180) *pitch) * Math.cos((Math.PI/180) *yaw) + eye[0];
+      this.position.y = -Math.sin((Math.PI/180) *pitch);
+      this.position.z = Math.cos((Math.PI/180) *pitch) * Math.sin((Math.PI/180) *yaw) + eye[2];
+
       this.velocity = {
         x: (slider.value * Math.cos(this.angl)),
         y: 0.1*(slider.value * Math.sin(this.angl)),
@@ -101,7 +102,7 @@ class Particle{
       }
       this.color[3] = 1.0;
       this.lifeTime = Math.random() * 5;
-      this.translation = new Mat4()
+      // this.translation = new Mat4()
     }
   }
 

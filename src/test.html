@@ -246,7 +246,7 @@
         particle.associateBuffers();
         for (let i = 0; i < particle.particleCount; i++){
           particle.particleList[i].update(dt);
-          particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
+          // particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
           particle.setUniforms(particle.particleList[i].translation.array, particle.particleList[i].color);
           gl.drawArrays(gl.POINTS, i, 1);
         }
