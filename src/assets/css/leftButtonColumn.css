@@ -1,0 +1,25 @@
+#left-column-buttons button {
+  background-color: #4CAF50; /* Green background */
+  border: 1px solid green; /* Green border */
+  color: white; /* White text */
+  padding: 10px 24px; /* Some padding */
+  cursor: pointer; /* Pointer/hand icon */
+  float: left; /* Float the buttons side by side */
+  position: relative;
+  left: 1285px;
+}
+
+/* Add a background color on hover */
+#left-column-buttons button:hover {
+  background-color: #3e8e41;
+}
+
+#gl-canvas {
+  position: absolute;
+}
+
+#main {
+  position:relative;
+  height: 100vh;
+  width: 100vw;
+}
