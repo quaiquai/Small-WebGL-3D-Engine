@@ -29,7 +29,7 @@ class UI{
   mouseDown(x,y){
     var t;
     var origin = eye;
-    var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 512) * 2 - 1, 1 - (y / 512) * 2);
+    var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 1024) * 2 - 1, 1 - (y / 1024) * 2);
 
     // test the selection box first
     if(this.renderer.selectedObject != null) {
@@ -72,7 +72,7 @@ class UI{
   mouseMove(x,y){
     if(this.moving) {
       var origin = eye;
-      var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 512) * 2 - 1, 1 - (y / 512) * 2);
+      var ray = getEyeRay(this.modelviewProjection.inverse(), (x /1024) * 2 - 1, 1 - (y / 1024) * 2);
 
       var t = (this.movementDistance - this.movementNormal.dot(origin)) / this.movementNormal.dot(ray);
       var hit = origin.add(ray.multiply(t));
@@ -86,7 +86,7 @@ class UI{
   mouseUp(x,y){
     if(this.moving) {
       var origin = eye;
-      var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 512) * 2 - 1, 1 - (y / 512) * 2);
+      var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 1024) * 2 - 1, 1 - (y / 1024) * 2);
 
       var t = (this.movementDistance - this.movementNormal.dot(origin)) / this.movementNormal.dot(ray);
       var hit = origin.add(ray.multiply(t));

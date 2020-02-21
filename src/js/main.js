@@ -441,7 +441,7 @@ document.onmousedown = function(event) {
   oldX = mouse.x;
   oldY = mouse.y;
 
-  if(mouse.x >= 0 && mouse.x < 720 && mouse.y >= 0 && mouse.y < 720) {
+  if(mouse.x >= 0 && mouse.x < 1280 && mouse.y >= 0 && mouse.y < 720) {
     mouseDown = !ui.mouseDown(mouse.x, mouse.y);
 
     // disable selection because dragging is used for rotating the camera and moving objects

@@ -109,7 +109,7 @@
     var vBufferId, indexBuffer;
     var keyState = {};
     var cube, cubeLight, light, lamp;
-    var wall, wall2, wall3, wall4, flat, flat2, house;
+    var wall, wall2, wall3, wall4, flat, flat2, gun;
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
     var eye = vec3(0.0, 1.0, 1.0);
@@ -160,16 +160,16 @@
       cube.genBuffers();
       cube.genUniforms();
 
-      house = new LoadOBJ("../assets/objects/Colt_Python.obj"); //create a new object to parse and render
-      var objurl = house.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
+      gun = new LoadOBJ("../assets/objects/Colt_Python.obj"); //create a new object to parse and render
+      var objurl = gun.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
       objurl = objurl.responseText // get the text from the ajax response
 
       //Get the model information from the string from .obj
-      data = ObjLoader.domToMesh("house", objurl, true);
-      house.data = data;
+      data = ObjLoader.domToMesh("gun", objurl, true);
+      gun.data = data;
 
-      house.genBuffers();
-      house.genUniforms();
+      gun.genBuffers();
+      gun.genUniforms();
 
       useProgram(lampShader)
       lamp = new Cube(0.04);
@@ -234,7 +234,7 @@
 
         // gl.enable(gl.CULL_FACE);
 
-        // // Enable the depth buffer
+        // Enable the depth buffer
         gl.enable(gl.DEPTH_TEST);
 
         gl.uniformMatrix4fv(u_projection_point, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
@@ -286,14 +286,14 @@
 
         //This puts the gun model in the correct position for a fps style
         //----------------------------------------------------------------
-        house.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
-        house.model = mult(house.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
-        house.model = mult(house.model, rotate(-pitch, 1.0, 0.0, 0.0))
-        house.model = mult(house.model, translate(10.0,-12.0,-25.0))
+        gun.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
+        gun.model = mult(gun.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
+        gun.model = mult(gun.model, rotate(-pitch, 1.0, 0.0, 0.0))
+        gun.model = mult(gun.model, translate(10.0,-12.0,-25.0))
         //----------------------------------------------------------------
-        house.associateBuffers();
-        house.setUniforms();
-        gl.drawElements(gl.TRIANGLES, house.data[0].length, gl.UNSIGNED_SHORT, 0);
+        gun.associateBuffers();
+        gun.setUniforms();
+        gl.drawElements(gl.TRIANGLES, gun.data[0].length, gl.UNSIGNED_SHORT, 0);
 
         useProgram(lampShader);
         gl.uniformMatrix4fv(u_projection_lamp, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
