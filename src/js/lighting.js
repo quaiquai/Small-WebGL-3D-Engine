@@ -22,7 +22,7 @@ class Lighting {
     }
     else if (this.lightingType == "point") {
       // gl.uniform3fv(lightWorldPositionLocation, [0.5, (Math.sin(now) + 1.1) / 2.2, -0.5]); //uncomment for moving light
-      gl.uniform3fv(lightWorldPositionLocation, [0.5, 0.5, -0.5]);
+      gl.uniform3fv(lightWorldPositionLocation, [0.0, 1.9, -0.5]);
       gl.uniform3fv(viewPosition, eye);
       gl.uniform3fv(lightColorLocation, [1.0, 1.0, 1.0]);
       gl.uniform3fv(specularColorLocation, [1.0, 1.0, 1.0]);

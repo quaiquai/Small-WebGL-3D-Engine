@@ -188,27 +188,27 @@
       lamp.genUniforms();
 
       useProgram(pointlightShader)
-      wall = new Wall([-2, 0, -2], [2, 2, -2], [0, 0, 1], "../assets/textures/brickWall.jpg");
+      wall = new Wall([-0.5, 0, -3], [0.5, 2, -3], [0, 0, 1], "../assets/textures/brickWall.jpg");
       wall.genBuffers();
       wall.genUniforms();
 
-      wall2 = new Wall([2, 0, -2], [2, 2, 2], [-1, 0, 0], "../assets/textures/brickWall.jpg");
+      wall2 = new Wall([0.5, 0, -3], [0.5, 2, 3], [-1, 0, 0], "../assets/textures/brickWall.jpg");
       wall2.genBuffers();
       wall2.genUniforms();
 
-      wall3 = new Wall([-2, 0, 2], [-2, 2, -2], [1, 0, 0], "../assets/textures/brickWall.jpg");
+      wall3 = new Wall([-0.5, 0, 3], [-0.5, 2, -3], [1, 0, 0], "../assets/textures/brickWall.jpg");
       wall3.genBuffers();
       wall3.genUniforms();
 
-      wall4 = new Wall([2, 0, 2], [-2, 2, 2], [0, 0, -1], "../assets/textures/brickWall.jpg");
+      wall4 = new Wall([0.5, 0, 3], [-0.5, 2, 3], [0, 0, -1], "../assets/textures/brickWall.jpg");
       wall4.genBuffers();
       wall4.genUniforms();
 
-      flat = new Flat([-2, 0, 2], [2, 0, -2], 0, [0, 1, 0], "../assets/textures/concreteFloor.jpg");
+      flat = new Flat([-0.5, 0, 3], [0.5, 0, -3], 0, [0, 1, 0], "../assets/textures/concreteFloor.jpg");
       flat.genBuffers();
       flat.genUniforms();
 
-      flat2 = new Flat([-2, 0, 2], [2, 0, -2], 2, [0, -1, 0], "../assets/textures/concreteFloor.jpg");
+      flat2 = new Flat([-0.5, 0, 3], [0.5, 0, -3], 2, [0, -1, 0], "../assets/textures/concreteFloor.jpg");
       flat2.genBuffers();
       flat2.genUniforms();
 
@@ -269,29 +269,29 @@
         cube.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
 
-        // wall.associateBuffers();
-        // wall.setUniforms();
-        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        //
-        // wall2.associateBuffers();
-        // wall2.setUniforms();
-        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        //
-        // wall3.associateBuffers();
-        // wall3.setUniforms();
-        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        //
-        // wall4.associateBuffers();
-        // wall4.setUniforms();
-        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        wall.associateBuffers();
+        wall.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        wall2.associateBuffers();
+        wall2.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        wall3.associateBuffers();
+        wall3.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        wall4.associateBuffers();
+        wall4.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         flat.associateBuffers();
         flat.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        // flat2.associateBuffers();
-        // flat2.setUniforms();
-        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        flat2.associateBuffers();
+        flat2.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         // //This puts the gun model in the correct position for a fps style
         // //----------------------------------------------------------------
@@ -315,7 +315,7 @@
         gl.uniformMatrix4fv(u_projection_lamp, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
         gl.uniformMatrix4fv(u_view_lamp, false, flatten(lookat));
         // lamp.model = translate(0.5, (Math.sin(now) + 1.0) / 2.2, -0.5)//uncomment for moving lamp
-        lamp.model = translate(0.5, 0.5, -0.5)
+        lamp.model = translate(0.0, 1.9, -0.5)
         lamp.associateBuffers();
         lamp.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
