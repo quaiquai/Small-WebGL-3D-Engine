@@ -11,12 +11,15 @@
 <script type="text/javascript" src="../js/particle.js"></script>
 <script type="text/javascript" src="../js/lighting.js"></script>
 <script type="text/javascript" src="../js/texture.js"></script>
+<script type="text/javascript" src="../js/skybox.js"></script>
 <script type="text/javascript" src="../shaders/FS_directionalLight.js"></script>
 <script type="text/javascript" src="../shaders/VS_directionalLight.js"></script>
 <script type="text/javascript" src="../shaders/FS_pointLight.js"></script>
 <script type="text/javascript" src="../shaders/VS_pointLight.js"></script>
 <script type="text/javascript" src="../shaders/FS_lamp.js"></script>
 <script type="text/javascript" src="../shaders/VS_lamp.js"></script>
+<script type="text/javascript" src="../shaders/FS_skybox.js"></script>
+<script type="text/javascript" src="../shaders/VS_skybox.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.js"></script>
 <script
   src="https://code.jquery.com/jquery-3.3.1.min.js">
@@ -93,6 +96,7 @@
     var vertex_buffer, color_buffer, line_buffer, line_color_buffer;
     // var program;
     var dragging;
+    var lookatCopy;
     var oldx, x, oldy, y;
     var front = vec3(0.0, 0.0, -1.0);
     var box;
@@ -108,7 +112,7 @@
     var bobs = 0.2;
     var vBufferId, indexBuffer;
     var keyState = {};
-    var cube, cubeLight, light, lamp;
+    var cube, cubeLight, light, lamp, skybox;
     var wall, wall2, wall3, wall4, flat, flat2, gun;
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
@@ -120,7 +124,7 @@
     var reverseLightDirectionLocation;
     var lightWorldPositionLocation;
     var viewPosition, shininessLocation, lightColorLocation, specularColorLocation;
-    var pointlightShader, lampShader, currentShader;
+    var pointlightShader, lampShader, currentShader, skyboxShader;
     /*================Creating a canvas=================*/
     window.onload = function init(event){
       canvas = document.getElementById("gl-canvas"); //get the canvas instance
@@ -146,30 +150,37 @@
 
       pointlightShader = createShaders(VS_pointLighting, FS_pointLighting);
       lampShader = createShaders(VS_lamp, FS_lamp);
+      skyboxShader = createShaders(VS_skybox, FS_skybox);
       useProgram(pointlightShader)
       // associateShaders(VS_pointLighting, FS_pointLighting);
 
       light = new Lighting("point");
       light.genUniforms();
 
-      particle = new ParticleStream(0.0, 0.9, 10, 100, "../assets/textures/grassBlock.jpg")
-      particle.genBuffers();
-      particle.genUniforms();
+      // particle = new ParticleStream(0.0, 0.9, 10, 100, "../assets/textures/grassBlock.jpg")
+      // particle.genBuffers();
+      // particle.genUniforms();
 
       cube = new Cube(0.1, "../assets/textures/grassBlock.jpg");
       cube.genBuffers();
       cube.genUniforms();
 
-      gun = new LoadOBJ("../assets/objects/Colt_Python.obj"); //create a new object to parse and render
-      var objurl = gun.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
-      objurl = objurl.responseText // get the text from the ajax response
+      useProgram(skyboxShader);
+      skybox = new Skybox();
+      skybox.genBuffers();
+      skybox.genUniforms();
 
-      //Get the model information from the string from .obj
-      data = ObjLoader.domToMesh("gun", objurl, true);
-      gun.data = data;
-
-      gun.genBuffers();
-      gun.genUniforms();
+      //
+      // gun = new LoadOBJ("../assets/objects/Colt_Python.obj"); //create a new object to parse and render
+      // var objurl = gun.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
+      // objurl = objurl.responseText // get the text from the ajax response
+      //
+      // //Get the model information from the string from .obj
+      // data = ObjLoader.domToMesh("gun", objurl, true);
+      // gun.data = data;
+      //
+      // gun.genBuffers();
+      // gun.genUniforms();
 
       useProgram(lampShader)
       lamp = new Cube(0.04);
@@ -239,61 +250,66 @@
 
         gl.uniformMatrix4fv(u_projection_point, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
         gl.uniformMatrix4fv(u_view_point, false, flatten(lookat));
-
         light.setUniforms();
-
         /*======== Associating shaders to buffer objects ========*/
         // Bind vertex buffer object
         // Get the attribute location
         // Point an attribute to the currently bound VBO
         // Enable the attribute
-        particle.associateBuffers();
-        for (let i = 0; i < particle.particleCount; i++){
-          particle.particleList[i].update(dt);
-          // particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
-          particle.setUniforms(particle.particleList[i].translation.array, particle.particleList[i].color);
-          gl.drawArrays(gl.POINTS, i, 1);
-        }
+        // particle.associateBuffers();
+        // for (let i = 0; i < particle.particleCount; i++){
+        //   particle.particleList[i].update(dt);
+        //   // particle.particleList[i].checkCollision(mouseyNDC, mousexNDC);
+        //   particle.setUniforms(particle.particleList[i].translation.array, particle.particleList[i].color);
+        //   gl.drawArrays(gl.POINTS, i, 1);
+        // }
 
         cube.associateBuffers();
         // cube.model = mult(cube.model, rotate(0.5, 0.0, 1.0, 0.0));
         cube.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
 
-        wall.associateBuffers();
-        wall.setUniforms();
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        wall2.associateBuffers();
-        wall2.setUniforms();
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        wall3.associateBuffers();
-        wall3.setUniforms();
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-        wall4.associateBuffers();
-        wall4.setUniforms();
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        // wall.associateBuffers();
+        // wall.setUniforms();
+        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        //
+        // wall2.associateBuffers();
+        // wall2.setUniforms();
+        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        //
+        // wall3.associateBuffers();
+        // wall3.setUniforms();
+        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        //
+        // wall4.associateBuffers();
+        // wall4.setUniforms();
+        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
         flat.associateBuffers();
         flat.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        flat2.associateBuffers();
-        flat2.setUniforms();
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        // flat2.associateBuffers();
+        // flat2.setUniforms();
+        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        //This puts the gun model in the correct position for a fps style
-        //----------------------------------------------------------------
-        gun.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
-        gun.model = mult(gun.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
-        gun.model = mult(gun.model, rotate(-pitch, 1.0, 0.0, 0.0))
-        gun.model = mult(gun.model, translate(10.0,-12.0,-25.0))
-        //----------------------------------------------------------------
-        gun.associateBuffers();
-        gun.setUniforms();
-        gl.drawElements(gl.TRIANGLES, gun.data[0].length, gl.UNSIGNED_SHORT, 0);
+        // //This puts the gun model in the correct position for a fps style
+        // //----------------------------------------------------------------
+        // gun.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
+        // gun.model = mult(gun.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
+        // gun.model = mult(gun.model, rotate(-pitch, 1.0, 0.0, 0.0))
+        // gun.model = mult(gun.model, translate(10.0,-12.0,-25.0))
+        // //----------------------------------------------------------------
+        // gun.associateBuffers();
+        // gun.setUniforms();
+        // gl.drawElements(gl.TRIANGLES, gun.data[0].length, gl.UNSIGNED_SHORT, 0);
+
+        useProgram(skyboxShader)
+        skybox.associateBuffers();
+        skybox.setUniforms();
+        gl.depthFunc(gl.LEQUAL);
+        gl.drawArrays(gl.TRIANGLES, 0, 1 * 6);
+
 
         useProgram(lampShader);
         gl.uniformMatrix4fv(u_projection_lamp, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));

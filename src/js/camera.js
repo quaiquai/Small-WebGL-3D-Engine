@@ -133,5 +133,6 @@ function updateLookat(camera){
     lookat = mult(lookat, yrotate);
   }else{
     lookat = lookAt(eye, vec3(eye[0] + at[0], eye[1] + (-at[1]), eye[2] + at[2]), vec3(0.0, 1.0, 0.0));
+    lookatCopy = lookAt(eye, vec3(eye[0] + at[0], eye[1] + (-at[1]), eye[2] + at[2]), vec3(0.0, 1.0, 0.0));
   }
 }

@@ -825,10 +825,10 @@ class Mat4
      * @description set to this Mat4 its own inverse
      *
      */
-    invert()
-    {
-        this.setInverseOf(this);
-    }
+    // invert()
+    // {
+    //     this.setInverseOf(this);
+    // }
 
 
     /**
