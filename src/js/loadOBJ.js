@@ -63,6 +63,7 @@ class LoadOBJ{
       gl.bindBuffer(gl.ARRAY_BUFFER, this.nBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, flatten(this.data[2]), gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      console.log(this.data[2])
 
       this.iBuffer = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.iBuffer);

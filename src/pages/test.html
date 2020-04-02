@@ -112,7 +112,7 @@
     var bobs = 0.2;
     var vBufferId, indexBuffer;
     var keyState = {};
-    var cube, cubeLight, light, lamp, skybox;
+    var cube, cubeLight, light, lamp, skybox, lamplight;
     var wall, wall2, wall3, wall4, flat, flat2, gun;
     var slider, sliderRho, mousexNDC, mouseyNDC;
     var at = vec3(0.0, 0.0, -1.0);
@@ -170,17 +170,6 @@
       skybox.genBuffers();
       skybox.genUniforms();
 
-      //
-      // gun = new LoadOBJ("../assets/objects/Colt_Python.obj"); //create a new object to parse and render
-      // var objurl = gun.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
-      // objurl = objurl.responseText // get the text from the ajax response
-      //
-      // //Get the model information from the string from .obj
-      // data = ObjLoader.domToMesh("gun", objurl, true);
-      // gun.data = data;
-      //
-      // gun.genBuffers();
-      // gun.genUniforms();
 
       useProgram(lampShader)
       lamp = new Cube(0.04);
@@ -188,6 +177,17 @@
       lamp.genUniforms();
 
       useProgram(pointlightShader)
+      gun = new LoadOBJ("../assets/objects/Colt_Python.obj"); //create a new object to parse and render
+      var objurl = gun.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
+      objurl = objurl.responseText // get the text from the ajax response
+
+      //Get the model information from the string from .obj
+      data = ObjLoader.domToMesh("gun", objurl, true);
+      gun.data = data;
+      console.log(data)
+      gun.genBuffers();
+      gun.genUniforms();
+
       wall = new Wall([-0.5, 0, -3], [0.5, 2, -3], [0, 0, 1], "../assets/textures/brickWall.jpg");
       wall.genBuffers();
       wall.genUniforms();
@@ -293,22 +293,22 @@
         flat2.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        // //This puts the gun model in the correct position for a fps style
-        // //----------------------------------------------------------------
-        // gun.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
-        // gun.model = mult(gun.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
-        // gun.model = mult(gun.model, rotate(-pitch, 1.0, 0.0, 0.0))
-        // gun.model = mult(gun.model, translate(10.0,-12.0,-25.0))
-        // //----------------------------------------------------------------
-        // gun.associateBuffers();
-        // gun.setUniforms();
-        // gl.drawElements(gl.TRIANGLES, gun.data[0].length, gl.UNSIGNED_SHORT, 0);
+        //This puts the gun model in the correct position for a fps style
+        //----------------------------------------------------------------
+        gun.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
+        gun.model = mult(gun.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
+        gun.model = mult(gun.model, rotate(-pitch, 1.0, 0.0, 0.0))
+        gun.model = mult(gun.model, translate(10.0,-12.0,-25.0))
+        //----------------------------------------------------------------
+        gun.associateBuffers();
+        gun.setUniforms();
+        gl.drawElements(gl.TRIANGLES, gun.data[0].length, gl.UNSIGNED_SHORT, 0);
 
         useProgram(skyboxShader)
         skybox.associateBuffers();
         skybox.setUniforms();
         gl.depthFunc(gl.LEQUAL);
-        gl.drawArrays(gl.TRIANGLES, 0, 1 * 6);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 
         useProgram(lampShader);

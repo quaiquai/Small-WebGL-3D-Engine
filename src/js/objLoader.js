@@ -13,6 +13,7 @@ class ObjLoader{
 			itm,				//Line split into an array
 			ary,				//Itm split into an array, used for faced decoding
 			i,
+			chr,				//Just a temp variable  //NEW
 			ind,				//used to calculate index of the cache arrays
 			isQuad = false,		//Determine if face is a quad or not
 			aCache = [],		//Cache Dictionary key = itm array element, val = final index of the vertice
@@ -37,18 +38,14 @@ class ObjLoader{
 				// v -1.000000 1.000000 1.000000
 				// vt 0.000000 0.666667
 				// vn 0.000000 0.000000 -1.000000
-				// HAVE TO CHANGE COORDS SHIFTING BASED ON OBJ PASSED IN (CURRENTLY HAVE TO CHANGE TO DOUBLE SHIFT FOR CAT OBJ)
 				case "v":
+					//itm = line.split(" "); itm.shift();  //NEW
+					chr = line.charAt(1);
+					itm = line.substring(3).split(" ");
 					switch(line.charAt(1)){
-						case " ":
-						 	itm = line.split(" "); itm.shift();itm.shift();
-							cVert.push(parseFloat(itm[0]) , parseFloat(itm[1]) , parseFloat(itm[2]) ); break;		//VERTEX
-						case "t":
-							itm = line.split(" "); itm.shift();
-							cUV.push( parseFloat(itm[0]) , parseFloat(itm[1]) );	break;							//UV
-						case "n":
-							itm = line.split(" "); itm.shift();
-							cNorm.push( parseFloat(itm[0]) , parseFloat(itm[1]) , parseFloat(itm[2]) ); break;	//NORMAL
+						case " ": cVert.push(parseFloat(itm[0]) , parseFloat(itm[1]) , parseFloat(itm[2]) ); break;		//VERTEX
+						case "t": cUV.push( parseFloat(itm[0]) , parseFloat(itm[1]) );	break;							//UV
+						case "n": cNorm.push( parseFloat(itm[0]) , parseFloat(itm[1]) , parseFloat(itm[2]) ); break;	//NORMAL
 					}
 				break;
 
@@ -113,7 +110,7 @@ class ObjLoader{
 
 			//Get Ready to parse the next line of the obj data.
 			posA = posB+1;
-			posB = txt.indexOf("\n",posA+1); //posA+1 works for linux but doesn't work for windows NEED TO LOOK FOR DIFF SOLUTION
+			posB = txt.indexOf("\n",posA);
 		}
 
 		return [fIndex,fVert,fNorm,fUV];
