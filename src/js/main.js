@@ -1,4 +1,5 @@
 
+// vertex shader for drawing a textured quad
 var renderVertexSource =
 ' attribute vec3 vertex;' +
 ' varying vec2 texCoord;' +
@@ -34,10 +35,10 @@ var lineFragmentSource =
 ' }';
 
 // constants for the shaders
-var bounces = '2';
+var bounces = '5';
 var epsilon = '0.0001';
 var infinity = '10000.0';
-var lightSize = 0.7;
+var lightSize = 0.1;
 var lightVal = 0.5;
 
 // vertex shader, interpolate ray per-pixel
@@ -52,7 +53,6 @@ var tracerVertexSource =
 ' }';
 
 // start of fragment shader
-// handle the room cube size
 var tracerFragmentSourceHeader =
 ' precision highp float;' +
 ' uniform vec3 eye;' +
@@ -62,7 +62,7 @@ var tracerFragmentSourceHeader =
 ' uniform sampler2D texture;' +
 ' uniform float glossiness;' +
 ' vec3 roomCubeMin = vec3(-5.0, -1.0, -5.0);' +
-' vec3 roomCubeMax = vec3(5.0, 10.0, 5.0);';
+' vec3 roomCubeMax = vec3(5.0, 5.0, 5.0);';
 
 // compute the near and far intersections of the cube (stored in the x and y components) using the slab method
 // no intersection means vec.x > vec.y (really tNear > tFar)
@@ -75,7 +75,7 @@ var intersectCubeSource =
 '   float tNear = max(max(t1.x, t1.y), t1.z);' +
 '   float tFar = min(min(t2.x, t2.y), t2.z);' +
 '   return vec2(tNear, tFar);' +
-' }' +
+' }'+
 
 ' vec2 intersectCubeAberraion(vec3 origin, vec3 ray, vec3 cubeMin, vec3 cubeMax) {' +
 '   vec3 tMin = (cubeMin - origin) / ray;' +
@@ -84,7 +84,7 @@ var intersectCubeSource =
 '   vec3 t2 = max(tMin, tMax);' +
 '   float tNear = max(max(t1.x, t1.y), t1.z);' +
 // '   if (origin.x > -0.4){ '+
-'   float tFar = min(min(t2.x, t2.y), t2.z * 3.0);' +
+'   float tFar = min(min(t2.x, t2.y), t2.z);' +
 // '   } else { '+
 // '     float tFar = min(min(t2.x, t2.y), t2.z);' +
 // '   } ' +
@@ -104,10 +104,32 @@ var normalForCubeSource =
 '   else return vec3(0.0, 0.0, 1.0);' +
 ' }';
 
+// compute the near intersection of a sphere
+// no intersection returns a value of +infinity
+var intersectSphereSource =
+' float intersectSphere(vec3 origin, vec3 ray, vec3 sphereCenter, float sphereRadius) {' +
+'   vec3 toSphere = origin - sphereCenter;' +
+'   float a = dot(ray, ray);' +
+'   float b = 2.0 * dot(toSphere, ray);' +
+'   float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;' +
+'   float discriminant = b*b - 4.0*a*c;' +
+'   if(discriminant > 0.0) {' +
+'     float t = (-b - sqrt(discriminant)) / (2.0 * a);' +
+'     if(t > 0.0) return t;' +
+'   }' +
+'   return ' + infinity + ';' +
+' }';
+
+// given that hit is a point on the sphere, what is the surface normal?
+var normalForSphereSource =
+' vec3 normalForSphere(vec3 hit, vec3 sphereCenter, float sphereRadius) {' +
+'   return (hit - sphereCenter) / sphereRadius;' +
+' }';
+
 // use the fragment position for randomness
 var randomSource =
 ' float random(vec3 scale, float seed) {' +
-'   return fract(dot(gl_FragCoord.xyz + seed, scale) + seed);' +
+'   return fract(sin(dot(gl_FragCoord.xyz + seed, scale)) * 43758.5453 + seed);' +
 ' }';
 
 // random cosine-weighted distributed vector
@@ -129,12 +151,52 @@ var cosineWeightedDirectionSource =
 '   return r*cos(angle)*sdir + r*sin(angle)*tdir + sqrt(1.-u)*normal;' +
 ' }';
 
+// random normalized vector
+var uniformlyRandomDirectionSource =
+' vec3 uniformlyRandomDirection(float seed) {' +
+'   float u = random(vec3(12.9898, 78.233, 151.7182), seed);' +
+'   float v = random(vec3(63.7264, 10.873, 623.6736), seed);' +
+'   float z = 1.0 - 2.0 * u;' +
+'   float r = sqrt(1.0 - z * z);' +
+'   float angle = 6.283185307179586 * v;' +
+'   return vec3(r * cos(angle), r * sin(angle), z);' +
+' }';
+
+// random vector in the unit sphere
+// note: this is probably not statistically uniform, saw raising to 1/3 power somewhere but that looks wrong?
+var uniformlyRandomVectorSource =
+' vec3 uniformlyRandomVector(float seed) {' +
+'   return uniformlyRandomDirection(seed) * sqrt(random(vec3(36.7539, 50.3658, 306.2759), seed));' +
+' }';
+
+// compute specular lighting contribution
+var specularReflection =
+' vec3 reflectedLight = normalize(reflect(light - hit, normal));' +
+' specularHighlight = max(0.0, dot(reflectedLight, normalize(hit - origin)));';
+
 // update ray using normal and bounce according to a diffuse reflection
 var newDiffuseRay =
 ' ray = cosineWeightedDirection(timeSinceStart + float(bounce), normal);';
 
-var surfaceColor =
-'surfaceColor = vec3(1.0, 0.0, 1.0);'
+// update ray using normal according to a specular reflection
+var newReflectiveRay =
+' ray = reflect(ray, normal);' +
+  specularReflection +
+' specularHighlight = 2.0 * pow(specularHighlight, 20.0);';
+
+// update ray using normal and bounce according to a glossy reflection
+var newGlossyRay =
+' ray = normalize(reflect(ray, normal)) + uniformlyRandomVector(timeSinceStart + float(bounce)) * glossiness;' +
+  specularReflection +
+' specularHighlight = pow(specularHighlight, 3.0);';
+
+var yellowBlueCornellBox =
+' if(hit.x < -0.9999) surfaceColor = vec3(0.1, 0.5, 1.0);' + // blue
+' else if(hit.x > 0.9999) surfaceColor = vec3(1.0, 0.9, 0.1);'; // yellow
+
+var redGreenCornellBox =
+' if(hit.x < -0.9999) surfaceColor = vec3(1.0, 0.3, 0.1);' + // red
+' else if(hit.x > 0.9999) surfaceColor = vec3(0.3, 1.0, 0.1);'; // green
 
 function makeShadow(objects) {
   return '' +
@@ -170,14 +232,14 @@ function makeCalculateColor(objects) {
       // calculate the normal (and change wall color)
 '     if(t == tRoom.y) {' +
 '       normal = -normalForCube(hit, roomCubeMin, roomCubeMax);' +
-        [surfaceColor][environment] +
+        [yellowBlueCornellBox, redGreenCornellBox][environment] +
         newDiffuseRay +
 '     } else if(t == ' + infinity + ') {' +
 '       break;' +
 '     } else {' +
 '       if(false) ;' + // hack to discard the first 'else' in 'else if'
         concat(objects, function(o){ return o.getNormalCalculationCode(); }) +
-        [newDiffuseRay] +
+        [newDiffuseRay, newReflectiveRay, newGlossyRay][material] +
 '     }' +
 
       // compute diffuse lighting contribution
@@ -200,28 +262,32 @@ function makeCalculateColor(objects) {
 ' }';
 }
 
-//change resolution in here
 function makeMain() {
   return '' +
 ' void main() {' +
-'   vec3 newLight = light + vec3(0.5) * ' + lightSize + ';' +
-'   vec3 texture = texture2D(texture, gl_FragCoord.xy / 1024.0).rgb;' +
+'   vec3 newLight = light + uniformlyRandomVector(timeSinceStart - 53.0) * ' + lightSize + ';' +
+'   vec2 texturecoord = vec2(gl_FragCoord.x / 1280.0, gl_FragCoord.y / 720.0);' +
+'   vec3 texture = texture2D(texture, texturecoord).rgb;' +
 '   gl_FragColor = vec4(mix(calculateColor(eye, initialRay, newLight), texture, textureWeight), 1.0);' +
 ' }';
 }
 
 function makeTracerFragmentSource(objects) {
-  var theShader = tracerFragmentSourceHeader +
+  return tracerFragmentSourceHeader +
   concat(objects, function(o){ return o.getGlobalCode(); }) +
   intersectCubeSource +
   normalForCubeSource +
+  intersectSphereSource +
+  normalForSphereSource +
   randomSource +
   cosineWeightedDirectionSource +
+  uniformlyRandomDirectionSource +
+  uniformlyRandomVectorSource +
   makeShadow(objects) +
   makeCalculateColor(objects) +
   makeMain();
-  return theShader;
 }
+
 
 
 
@@ -338,6 +404,7 @@ function checkJump(){
 
 }
 
+
 function tick(timeSinceStart) {
   if (keyState[39] || keyState[65]){
     tempYaw += 0.05;
@@ -367,13 +434,13 @@ function tick(timeSinceStart) {
     }
   }
 
-  eye.elements[0] = zoomZ * Math.sin(angleY) * Math.cos(angleX) + forwardX;
-  eye.elements[1] = zoomZ * Math.sin(angleX) + velocityY;
-  eye.elements[2] = zoomZ * Math.cos(angleY) * Math.cos(angleX) + forwardZ;
+  eye.elements[0] = zoomZ + forwardX;
+  eye.elements[1] = zoomZ * velocityY;
+  eye.elements[2] = zoomZ + forwardZ;
 
-  at.elements[0] = Math.sin(yaw);
-  at.elements[1] = velocityY;
-  at.elements[2] = -Math.cos(yaw);
+  at.elements[0] = Math.cos((Math.PI/180) *angleX) * Math.cos((Math.PI/180) *angleY);
+  at.elements[1] = Math.sin((Math.PI/180) *angleX);
+  at.elements[2] = Math.cos((Math.PI/180) *angleX) * Math.sin((Math.PI/180) *angleY);
 
   checkJump();
   ui.updateEnvironment();
@@ -386,6 +453,56 @@ window.onload = function() {
   error = document.getElementById('error');
   canvas = document.getElementById('canvas');
   try { gl = canvas.getContext('experimental-webgl'); } catch(e) {}
+
+  canvas.requestPointerLock = canvas.requestPointerLock ||
+                        canvas.mozRequestPointerLock;
+  document.exitPointerLock = document.exitPointerLock ||
+                             document.mozExitPointerLock;
+  canvas.onclick = function() {
+    canvas.requestPointerLock();
+  };
+
+  // pointer lock event listeners
+  // Hook pointer lock state change events for different browsers
+  document.addEventListener('pointerlockchange', lockChangeAlert, false);
+  document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+
+  function lockChangeAlert() {
+    if (document.pointerLockElement === canvas ||
+        document.mozPointerLockElement === canvas) {
+          console.log('The pointer lock status is now locked');
+          document.addEventListener("mousemove", updatePosition, false);
+    } else {
+      console.log('The pointer lock status is now unlocked');
+      document.removeEventListener("mousemove", updatePosition, false);
+    }
+  }
+
+  function updatePosition(event){
+    var mouse = canvasMousePos(event);
+    if(mouseDown) {
+
+      // update the angles based on how far we moved since last time
+      angleY += 0.1 * event.movementX;
+
+      angleX -= 0.1 * event.movementY;
+
+      console.log(angleY, angleX)
+
+      // don't go upside down
+      angleX = Math.max(Math.min(angleX, 89), -89)
+
+      // clear the sample buffer
+      ui.renderer.pathTracer.sampleCount = 0;
+
+      // remember this coordinate
+      oldX = mouse.x;
+      oldY = mouse.y;
+    } else {
+      var canvasPos = elementPos(canvas);
+      ui.mouseMove(mouse.x, mouse.y);
+    }
+  }
 
   if(gl) {
     ui = new UI();
@@ -441,42 +558,43 @@ document.onmousedown = function(event) {
   oldX = mouse.x;
   oldY = mouse.y;
 
-  if(mouse.x >= 0 && mouse.x < 1280 && mouse.y >= 0 && mouse.y < 720) {
+  if(mouse.x >= 0 && mouse.x < 1024 && mouse.y >= 0 && mouse.y < 1024) {
     mouseDown = !ui.mouseDown(mouse.x, mouse.y);
 
     // disable selection because dragging is used for rotating the camera and moving objects
-    return false;
+    // return false;
   }
 
   return true;
 };
 
-document.onmousemove = function(event) {
-  var mouse = canvasMousePos(event);
-
-  if(mouseDown) {
-    // update the angles based on how far we moved since last time
-    angleY -= (mouse.x - oldX) * 0.01;
-    angleX += (mouse.y - oldY) * 0.01;
-
-    // don't go upside down
-    angleX = Math.max(angleX, -Math.PI / 2 + 0.01);
-    angleX = Math.min(angleX, Math.PI / 2 - 0.01);
-
-    // clear the sample buffer
-    ui.renderer.pathTracer.sampleCount = 0;
-
-    // remember this coordinate
-    oldX = mouse.x;
-    oldY = mouse.y;
-  } else {
-    var canvasPos = elementPos(canvas);
-    ui.mouseMove(mouse.x, mouse.y);
-  }
-};
+// document.onmousemove = function(event) {
+//   var mouse = canvasMousePos(event);
+//
+//   if(mouseDown) {
+//
+//     // update the angles based on how far we moved since last time
+//     angleY += (mouse.x - oldX) * 0.1;
+//
+//     angleX += (mouse.y - oldY) * 0.1;
+//
+//     // don't go upside down
+//     angleX = Math.max(Math.min(angleX, 89), -89)
+//
+//     // clear the sample buffer
+//     ui.renderer.pathTracer.sampleCount = 0;
+//
+//     // remember this coordinate
+//     oldX = mouse.x;
+//     oldY = mouse.y;
+//   } else {
+//     var canvasPos = elementPos(canvas);
+//     ui.mouseMove(mouse.x, mouse.y);
+//   }
+// };
 
 document.onmouseup = function(event) {
-  mouseDown = false;
+  // mouseDown = false;
 
   var mouse = canvasMousePos(event);
   ui.mouseUp(mouse.x, mouse.y);

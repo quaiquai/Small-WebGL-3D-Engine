@@ -64,44 +64,56 @@ class Primitives{
 }
 
 class Cube extends Primitives{
-  constructor(sz, textureImagePath){
+  /*
+  Constructor for a cube primitive.
+
+  // @param props   properties of the cube describing:
+  //                         length, width, height, and texture.
+  */
+  constructor(sz, textureImagePath, props){
+    console.log(props)
     super("Cube", sz, textureImagePath);
+
+    let length = props.length;
+    let width = props.width;
+    let height = props.height;
+
     this.vertices = [
       // Front face
-      -sz, 0,  sz,
-      sz, 0,  sz,
-      -sz,  sz * 2,  sz,
-      sz,  sz * 2,  sz,
+      -width/2, 0,  length/2,
+      width/2, 0,  length/2,
+      -width/2,  height,  length/2,
+      width/2,  height,  length/2,
 
       // Back face
-      sz, 0, -sz,
-      -sz,  0, -sz,
-      sz,  sz * 2, -sz,
-       -sz, sz * 2, -sz,
+      width/2, 0, -length/2,
+      -width/2,  0, -length/2,
+      width/2,  height, -length/2,
+       -width/2, height, -length/2,
 
       // Top face
-      -sz,  sz * 2, -sz,
-      sz,  sz * 2,  -sz,
-       -sz,  sz * 2,  sz,
-       sz,  sz * 2, sz,
+      -width/2,  height, -length/2,
+      width/2,  height,  -length/2,
+       -width/2,  height,  length/2,
+       width/2,  height, length/2,
 
       // Bottom face
-      -sz, 0, -sz,
-       sz, 0, -sz,
-       -sz, 0,  sz,
-      sz, 0,  sz,
+      -width/2, 0, -length/2,
+       width/2, 0, -length/2,
+       -width/2, 0,  length/2,
+      width/2, 0,  length/2,
 
       // Right face
-       sz, 0, sz,
-       sz,  0, -sz,
-       sz,  sz * 2,  sz,
-       sz, sz * 2,  -sz,
+      width/2, 0, length/2,
+      width/2,  0, -length/2,
+      width/2,  height,  length/2,
+      width/2, height,  -length/2,
 
       // Left face
-      -sz, 0, -sz,
-      -sz, 0,  sz,
-      -sz,  sz * 2,  -sz,
-      -sz,  sz * 2, sz
+      -width/2, 0, -length/2,
+      -width/2, 0,  length/2,
+      -width/2,  height,  -length/2,
+      -width/2,  height, length/2
     ]
     this.normals = [
       //Front face

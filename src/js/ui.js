@@ -20,7 +20,7 @@ class UI{
   }
 
   update(time){
-    this.modelview = makeLookAt(eye.elements[0], eye.elements[1], eye.elements[2], eye.elements[0] + at.elements[0], at.elements[1], eye.elements[2]+ at.elements[2], 0, 1, 0);
+    this.modelview = makeLookAt(eye.elements[0], eye.elements[1], eye.elements[2], eye.elements[0] + at.elements[0], eye.elements[1] + at.elements[1], eye.elements[2]+ at.elements[2], 0, 1, 0);
     this.projection = makePerspective(80, 1, 0.1, 100);
     this.modelviewProjection = this.projection.multiply(this.modelview);
     this.renderer.update(this.modelviewProjection, time);
@@ -29,7 +29,7 @@ class UI{
   mouseDown(x,y){
     var t;
     var origin = eye;
-    var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 1024) * 2 - 1, 1 - (y / 1024) * 2);
+    var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 1280) * 2 - 1, 1 - (y / 720) * 2);
 
     // test the selection box first
     if(this.renderer.selectedObject != null) {
@@ -72,7 +72,7 @@ class UI{
   mouseMove(x,y){
     if(this.moving) {
       var origin = eye;
-      var ray = getEyeRay(this.modelviewProjection.inverse(), (x /1024) * 2 - 1, 1 - (y / 1024) * 2);
+      var ray = getEyeRay(this.modelviewProjection.inverse(), (x /1280) * 2 - 1, 1 - (y / 720) * 2);
 
       var t = (this.movementDistance - this.movementNormal.dot(origin)) / this.movementNormal.dot(ray);
       var hit = origin.add(ray.multiply(t));
@@ -86,7 +86,7 @@ class UI{
   mouseUp(x,y){
     if(this.moving) {
       var origin = eye;
-      var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 1024) * 2 - 1, 1 - (y / 1024) * 2);
+      var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 1280) * 2 - 1, 1 - (y / 720) * 2);
 
       var t = (this.movementDistance - this.movementNormal.dot(origin)) / this.movementNormal.dot(ray);
       var hit = origin.add(ray.multiply(t));

@@ -109,10 +109,10 @@ function movementTick(camera){
     forwardZ -= zDirection * 0.02; // move in backwards in direction camera
     bobs -= 0.2;//for bobbing during walking
   }
-  // if (keyState[65] || keyState[65]){
-  //   forwardX += at[0] * 0.005; // move in forward in direction camera
-  //   bobs += 0.1;//for bobbing during walking
-  // }
+  if (keyState[65] || keyState[65]){
+    forwardX += at[0] * 0.005; // move in forward in direction camera
+    bobs += 0.1;//for bobbing during walking
+  }
   // if (keyState[68] || keyState[68]){
   //   forwardX += at[0] * 0.005; // move in forward in direction camera
   //   forwardZ += at[2] * 0.005; // move in forward in direction camera
