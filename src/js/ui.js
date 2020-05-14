@@ -21,7 +21,7 @@ class UI{
 
   update(time){
     this.modelview = makeLookAt(eye.elements[0], eye.elements[1], eye.elements[2], eye.elements[0] + at.elements[0], eye.elements[1] + at.elements[1], eye.elements[2]+ at.elements[2], 0, 1, 0);
-    this.projection = makePerspective(80, 1280/720, 0.1, 100);
+    this.projection = makePerspective(90, 1280/720, 0.1, 100);
     this.modelviewProjection = this.projection.multiply(this.modelview);
     this.renderer.update(this.modelviewProjection, time);
   }
