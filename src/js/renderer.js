@@ -47,8 +47,10 @@ class Renderer{
   }
 
    update(modelviewProjection, time){
+    var jitter = Matrix.Translation(Vector.create([Math.random() * 2 - 1, Math.random() * 2 - 1, 0]).multiply(1 / 512));
+    var inverse = jitter.multiply(modelviewProjection).inverse();
     this.modelviewProjection = modelviewProjection;
-    this.pathTracer.update(modelviewProjection.inverse(), time);
+    this.pathTracer.update(inverse, time);
   }
 
    render(){

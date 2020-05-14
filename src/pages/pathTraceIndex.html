@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html><head>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>WebGl Path Tracer</title>
   <script type="text/javascript" src="../math/sylvester.js"></script>
 
@@ -20,8 +20,9 @@
   <script type="text/javascript" src="../math/Mat4.js"></script>
   <script type="text/javascript" src="../utils/glUtils.js"></script>
 
-</head><body>
-  <h1>Project LINK</h1>
+</head>
+<body>
+  <!-- <h1>Project LINK</h1>
 
   <ul>
     <li>The Camera movement and be controlled via 'arrow keys' or 'wasd'. Up arrow/w and Down arrow/s move forward and back. Left/a and Right/d arrow rotate the camera round xz axis.</li>
@@ -31,10 +32,52 @@
     <li>The 'step stones' check for collisions when jumped on. You can jump from stone to stone to get higher in the room.</li>
     <li>All objects can be seleceted by clicking on them. Dragging performs a translation of selected object. Backspace will delete selected object.</li>
     <li>CAT OBJ button will open a new page showing traditional rendering of a cat from a parsed obj file. (couldnt get it to work in path tracer.)</li>
-  </ul>
+  </ul> -->
 
   <div id="main">
-    <canvas id="canvas" width="1280" height="720"></canvas>
+    <div>
+      <canvas id="canvas" width="1280" height="720"></canvas>
+    </div>
+    <div id="overlay" class="divLeft">
+      <figure>
+        <figcaption></figcaption>
+          <pre>
+            <code id="fs_code">
+            </code>
+          </pre>
+        </figure>
+    </div>
+    <p>Path Tracer</p>
+    <!-- <div>
+      <button class="button" onclick="javascript:ui.selectLight()" id="fs_toggle">Select Light</button>
+    </div> -->
+    <style TYPE="text/css">
+      body {background: linear-gradient(to right,gray,white,gray);}
+      p {font-size:300%;text-align:center;}
+      canvas {padding:0;margin:auto;display:block;position:absolute;top:0;bottom:0;left:0;right:0;}
+      #overlay {
+        position: absolute;
+      }
+      .button {
+        background-color: #555555; /* Green */
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+      }
+      .divLeft {
+        background-color: rgba(255, 255, 255, 0.6);
+        padding:0;margin:auto;display:none;position:absolute;top:0;bottom:0;left:0;right:0;width: 1280px;height: 720;overflow-x: hidden;
+        overflow-x: auto;
+        text-align:justify;
+      }
+      .divRight {
+        width:100px;
+      }
+    </style>
     <div id="error"><noscript>Please enable JavaScript.</noscript></div>
 
     <p>
@@ -45,17 +88,22 @@
       <button onclick="location.href='trad.html'">Go to rendering of Cat OBJ</button>
       <!-- <button onclick="javascript:ui.addCube()">Add Cube</button> -->
     </p>
-    <audio id="myAudio">
-        <source src="" type="audio/mpeg">
-          Your browser does not support the audio element.
-        </audio>
-
     <p>
       <b>Environment:</b>
       <select id="environment">
         <option value="0" selected>Steps and Tunnel</option>
       </select>
     </p>
+    <script>
+    function toggleFS() {
+      var x = document.getElementById("overlay");
+      if(x.style.display == "block"){
+        x.style.display = "none";
+      }else{
+        x.style.display = "block";
+      }
+    }
+    </script>
   </div>
 
 </body></html>

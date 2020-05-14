@@ -1,4 +1,4 @@
-
+var finalShader
 // vertex shader for drawing a textured quad
 var renderVertexSource =
 ' attribute vec3 vertex;' +
@@ -39,7 +39,7 @@ var bounces = '5';
 var epsilon = '0.0001';
 var infinity = '10000.0';
 var lightSize = 0.1;
-var lightVal = 0.5;
+var lightVal = 0.8;
 
 // vertex shader, interpolate ray per-pixel
 var tracerVertexSource =
@@ -191,12 +191,12 @@ var newGlossyRay =
 ' specularHighlight = pow(specularHighlight, 3.0);';
 
 var yellowBlueCornellBox =
-' if(hit.x < -0.9999) surfaceColor = vec3(0.1, 0.5, 1.0);' + // blue
-' else if(hit.x > 0.9999) surfaceColor = vec3(1.0, 0.9, 0.1);'; // yellow
+' if(hit.x < -4.9999) surfaceColor = vec3(0.1, 0.0, 0.6);' + // blue
+' else if(hit.x > 4.9999) surfaceColor = vec3(0.5, 0.0, 0.0);'; // yellow
 
 var redGreenCornellBox =
-' if(hit.x < -0.9999) surfaceColor = vec3(1.0, 0.3, 0.1);' + // red
-' else if(hit.x > 0.9999) surfaceColor = vec3(0.3, 1.0, 0.1);'; // green
+' if(hit.x < -4.9999) surfaceColor = vec3(1.0, 0.3, 0.1);' + // red
+' else if(hit.x > 4.9999) surfaceColor = vec3(0.3, 1.0, 0.1);'; // green
 
 function makeShadow(objects) {
   return '' +
@@ -209,7 +209,7 @@ function makeShadow(objects) {
 function makeCalculateColor(objects) {
   return '' +
 ' vec3 calculateColor(vec3 origin, vec3 ray, vec3 light) {' +
-'   vec3 colorMask = vec3(1.0);' +
+'   vec3 colorMask = vec3(1.0, 1.0, 0.5);' +
 '   vec3 accumulatedColor = vec3(0.0);' +
 
     // main raytracing loop
@@ -273,19 +273,21 @@ function makeMain() {
 }
 
 function makeTracerFragmentSource(objects) {
-  return tracerFragmentSourceHeader +
-  concat(objects, function(o){ return o.getGlobalCode(); }) +
-  intersectCubeSource +
-  normalForCubeSource +
-  intersectSphereSource +
-  normalForSphereSource +
-  randomSource +
-  cosineWeightedDirectionSource +
-  uniformlyRandomDirectionSource +
-  uniformlyRandomVectorSource +
-  makeShadow(objects) +
-  makeCalculateColor(objects) +
-  makeMain();
+  finalShader =
+    tracerFragmentSourceHeader +
+    concat(objects, function(o){ return o.getGlobalCode(); }) +
+    intersectCubeSource +
+    normalForCubeSource +
+    intersectSphereSource +
+    normalForSphereSource +
+    randomSource +
+    cosineWeightedDirectionSource +
+    uniformlyRandomDirectionSource +
+    uniformlyRandomVectorSource +
+    makeShadow(objects) +
+    makeCalculateColor(objects) +
+    makeMain();
+  return finalShader
 }
 
 
@@ -345,7 +347,7 @@ var objectsList;
 var MATERIAL_DIFFUSE = 0;
 var MATERIAL_MIRROR = 1;
 var MATERIAL_GLOSSY = 2;
-var material = MATERIAL_DIFFUSE;
+var material = MATERIAL_MIRROR ;
 var glossiness = 0.6;
 
 var STEPS1 = 0;
@@ -509,6 +511,10 @@ window.onload = function() {
     ui.setObjects(level1());
     objectsList = ui.objects;
     var start = new Date();
+    var fsElement = document.getElementById("fs_code");
+    var fsNode = document.createTextNode("");
+    fsElement.appendChild(fsNode);
+    fsNode.nodeValue = finalShader
     error.style.zIndex = -1;
     setInterval(function(){
        tick((new Date() - start) * 0.001);
@@ -558,8 +564,11 @@ document.onmousedown = function(event) {
   oldX = mouse.x;
   oldY = mouse.y;
 
-  if(mouse.x >= 0 && mouse.x < 1024 && mouse.y >= 0 && mouse.y < 1024) {
-    mouseDown = !ui.mouseDown(mouse.x, mouse.y);
+  if(keyState[70]){
+    mouseDown = !ui.mouseDown(1280/2, 720/2);
+  }
+  if(mouse.x >= 0 && mouse.x < 1280 && mouse.y >= 0 && mouse.y < 720) {
+    mouseDown = !ui.mouseDown(mouse.x, mouse.x);
 
     // disable selection because dragging is used for rotating the camera and moving objects
     // return false;
@@ -597,7 +606,8 @@ document.onmouseup = function(event) {
   // mouseDown = false;
 
   var mouse = canvasMousePos(event);
-  ui.mouseUp(mouse.x, mouse.y);
+  console.log(mouse.x, mouse.y)
+  ui.mouseUp(1280/2, 720/2);
 };
 
 window.addEventListener('keydown',function(e){
