@@ -4,12 +4,14 @@ var FS_pointLighting = `
 	varying vec3 v_surfaceToLight;
 	varying vec3 v_surfaceToView;
 	varying vec2 v_texcoord;
+	varying vec4 v_positionFromLight;
 
 	uniform vec4 u_color;
 	uniform vec3 u_lightColor;
 	uniform vec3 u_specularColor;
 	uniform float u_shininess;
 	uniform sampler2D u_texture;
+	uniform sampler2D u_ShadowMap;
 
 
 	void main(){
@@ -17,6 +19,11 @@ var FS_pointLighting = `
   		// so it will not be a unit vector. Normalizing it
   		// will make it a unit vector again
   		vec3 normal = normalize(v_normal);
+
+			vec3 shadowCoord = (v_positionFromLight.xyz/v_positionFromLight.w)/2.0 + 0.5;
+			vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);
+			float depth = rgbaDepth.r;
+			float visibility = (shadowCoord.z > depth + 0.0025) ? 0.1 : 1.0;
 
   		vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
   		vec3 surfaceToViewDirection = normalize(v_surfaceToView);
@@ -38,7 +45,7 @@ var FS_pointLighting = `
 			//to the color of the object http://learnwebgl.brown37.net/09_lights/lights_attenuation.html
 			float attenuation = clamp(0.5 / surfaceToLightDistance, 0.0, 1.0);
 
-			gl_FragColor = u_color + texture2D(u_texture, v_texcoord);
+			gl_FragColor = u_color + texture2D(u_texture, v_texcoord) + visibility;
 			// gl_FragColor = texture2D(u_texture, gl_PointCoord);
 
 

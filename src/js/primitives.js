@@ -5,6 +5,7 @@ class Primitives{
     sz ? this.size = sz : this.size = null;
     if(textureImage){
       this.im = new Texture(textureImage);
+      console.log(this.primitiveType)
       //pass the texture object as a parameter
       //so the async call can access the properties of it
       this.im.loadTexture(this.im);

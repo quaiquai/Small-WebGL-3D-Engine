@@ -2,6 +2,7 @@
 <html>
 <!-- UTIL FILES FOR SYSTEM FUNCTION -->
 <script type="text/javascript" src="../utils/webgl-utils.js"></script>
+<script type="text/javascript" src="../utils/webgl-debug.js"></script>
 <script type="text/javascript" src="../utils/initShaders.js"></script>
 <script type="text/javascript" src="../math/MV.js"></script>
 <script type="text/javascript" src="../math/Mat4.js"></script>
@@ -12,14 +13,16 @@
 <script type="text/javascript" src="../js/lighting.js"></script>
 <script type="text/javascript" src="../js/texture.js"></script>
 <script type="text/javascript" src="../js/skybox.js"></script>
-<script type="text/javascript" src="../shaders/FS_directionalLight.js"></script>
-<script type="text/javascript" src="../shaders/VS_directionalLight.js"></script>
-<script type="text/javascript" src="../shaders/FS_pointLight.js"></script>
-<script type="text/javascript" src="../shaders/VS_pointLight.js"></script>
-<script type="text/javascript" src="../shaders/FS_lamp.js"></script>
-<script type="text/javascript" src="../shaders/VS_lamp.js"></script>
-<script type="text/javascript" src="../shaders/FS_skybox.js"></script>
-<script type="text/javascript" src="../shaders/VS_skybox.js"></script>
+<script type="text/javascript" src="../shaders/fragment/FS_directionalLight.js"></script>
+<script type="text/javascript" src="../shaders/vertex/VS_directionalLight.js"></script>
+<script type="text/javascript" src="../shaders/fragment/FS_pointLight.js"></script>
+<script type="text/javascript" src="../shaders/vertex/VS_pointLight.js"></script>
+<script type="text/javascript" src="../shaders/fragment/FS_lamp.js"></script>
+<script type="text/javascript" src="../shaders/vertex/VS_lamp.js"></script>
+<script type="text/javascript" src="../shaders/fragment/FS_skybox.js"></script>
+<script type="text/javascript" src="../shaders/vertex/VS_skybox.js"></script>
+<script type="text/javascript" src="../shaders/fragment/FS_shadow.js"></script>
+<script type="text/javascript" src="../shaders/vertex/VS_shadow.js"></script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.js"></script>
 <script
   src="https://code.jquery.com/jquery-3.3.1.min.js">
@@ -125,6 +128,10 @@
     var lightWorldPositionLocation;
     var viewPosition, shininessLocation, lightColorLocation, specularColorLocation;
     var pointlightShader, lampShader, currentShader, skyboxShader;
+    var shadowWidth = 1280, shadowHeight = 720;
+    var framebuffer, shadowShader, model, view, projection, shadowModel, shadowView, shadowProjection;
+    var shadowMap, lightView, lightModel, lightProjection;
+    var u_image0, u_image1;
     /*================Creating a canvas=================*/
     window.onload = function init(event){
       canvas = document.getElementById("gl-canvas"); //get the canvas instance
@@ -151,6 +158,44 @@
       pointlightShader = createShaders(VS_pointLighting, FS_pointLighting);
       lampShader = createShaders(VS_lamp, FS_lamp);
       skyboxShader = createShaders(VS_skybox, FS_skybox);
+      shadowShader = createShaders(VS_shadow, FS_shadow);
+
+      useProgram(shadowShader);
+      var aPostion = gl.getAttribLocation(currentShader, 'coordinates');
+      shadowModel = gl.getUniformLocation(currentShader, 'u_model');
+      shadowView = gl.getUniformLocation(currentShader, 'view');
+      shadowProjection = gl.getUniformLocation(currentShader, 'projection');
+
+      framebuffer = gl.createFramebuffer();
+      if (!framebuffer) {
+        console.log('Failed to create frame buffer object');
+        return error();
+      }
+      var texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, shadowWidth, shadowHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+      var depthBuffer = gl.createRenderbuffer();
+      gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+      gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, shadowWidth, shadowHeight);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+
+
+      framebuffer.texture = texture; // keep the required object
+
+      // Unbind the buffer object
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
       useProgram(pointlightShader)
       // associateShaders(VS_pointLighting, FS_pointLighting);
 
@@ -161,7 +206,10 @@
       // particle.genBuffers();
       // particle.genUniforms();
 
-      cube = new Cube(0.1, "../assets/textures/grassBlock.jpg", {
+      u_image0 = gl.getUniformLocation(currentShader, 'u_texture');
+      gl.uniform1i(u_image0, 0);
+
+      cube = new Cube(0.1, "../assets/textures/brickWall.jpg", {
         length: 0.5,
         width: 0.5,
         height: 0.5
@@ -185,15 +233,15 @@
       lamp.genUniforms();
 
       useProgram(pointlightShader)
-      // gun = new LoadOBJ("../assets/objects/Colt_Python.obj"); //create a new object to parse and render
-      // var objurl = gun.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
-      // objurl = objurl.responseText // get the text from the ajax response
+      gun = new LoadOBJ("../assets/objects/Colt_Python.obj"); //create a new object to parse and render
+      var objurl = gun.loadMeshDataTriangle(); // load the text from .obj file to be sent to parser
+      objurl = objurl.responseText // get the text from the ajax response
 
       //Get the model information from the string from .obj
-      // data = ObjLoader.domToMesh("gun", objurl, true);
-      // gun.data = data;
-      // gun.genBuffers();
-      // gun.genUniforms();
+      data = ObjLoader.domToMesh("gun", objurl, true);
+      gun.data = data;
+      gun.genBuffers();
+      gun.genUniforms();
 
       // wall = new Wall([-0.5, 0, -3], [0.5, 2, -3], [0, 0, 1], "../assets/textures/brickWall.jpg");
       // wall.genBuffers();
@@ -207,9 +255,9 @@
       // wall3.genBuffers();
       // wall3.genUniforms();
       //
-      // wall4 = new Wall([0.5, 0, 3], [-0.5, 2, 3], [0, 0, -1], "../assets/textures/brickWall.jpg");
-      // wall4.genBuffers();
-      // wall4.genUniforms();
+      wall4 = new Wall([0.5, 0, 3], [-0.5, 2, 3], [0, 0, -1], "../assets/textures/brickWall.jpg");
+      wall4.genBuffers();
+      wall4.genUniforms();
 
       flat = new Flat([-2.0, 0, 2], [2.0, 0, -2], 0, [0, 1, 0], "../assets/textures/concreteFloor.jpg");
       flat.genBuffers();
@@ -223,14 +271,29 @@
       u_projection_point = gl.getUniformLocation(currentShader, "u_projection");
       u_view_point = gl.getUniformLocation(currentShader, "u_view");
 
+      lightView = gl.getUniformLocation(currentShader, "lightView");
+      lightModel = gl.getUniformLocation(currentShader, "lightModel");
+      lightProjection = gl.getUniformLocation(currentShader, "lightProjection");
+      shadowMap = gl.getUniformLocation(currentShader, "u_ShadowMap");
+
+      gl.uniform1i(shadowMap, 1);
+
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, framebuffer.texture);
+
       useProgram(lampShader)
       u_projection_lamp = gl.getUniformLocation(currentShader, "u_projection");
       u_view_lamp = gl.getUniformLocation(currentShader, "u_view");
 
-
-
       /*============= Drawing the primitive ===============*/
       now = 0;
+      model = mat4();
+      projection = perspective(90, shadowWidth/shadowHeight, 1, 1000) //perspective shadowMap
+      // projection = ortho(-5, 5, -5, 5, -5, 100);
+      view = lookAt(vec3(0.0, 1.5, -0.8), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0))
+
+
+
       render()
     }
 
@@ -240,10 +303,41 @@
 
       currentFrame = Date.now();
       delta = currentFrame - then;
-
+      view = lookAt(vec3(2.5, 1.5, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0))
 
       if (delta > interval){
         then = currentFrame - (delta % interval);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        gl.viewport(0, 0, shadowWidth, shadowHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.useProgram(shadowShader);
+        gl.uniformMatrix4fv(shadowModel, false, flatten(model));
+        gl.uniformMatrix4fv(shadowView, false, flatten(view));
+        gl.uniformMatrix4fv(shadowProjection, false, flatten(projection));
+
+        cube.genUniforms();
+        cube.associateBuffers();
+        cube.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
+
+        flat.genUniforms();
+        flat.associateBuffers();
+        flat.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        gun.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
+        gun.model = mult(gun.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
+        gun.model = mult(gun.model, rotate(-pitch, 1.0, 0.0, 0.0))
+        gun.model = mult(gun.model, translate(10.0,-12.0,-25.0))
+        gl.uniformMatrix4fv(shadowModel, false, flatten(gun.model));
+        //----------------------------------------------------------------
+        gun.associateBuffers();
+        gun.setUniforms();
+        gl.drawElements(gl.TRIANGLES, gun.data[0].length, gl.UNSIGNED_SHORT, 0);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
         useProgram(pointlightShader);
         // Clear the canvas AND the depth buffer.
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -257,6 +351,9 @@
 
         gl.uniformMatrix4fv(u_projection_point, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
         gl.uniformMatrix4fv(u_view_point, false, flatten(lookat));
+        gl.uniformMatrix4fv(lightView, false, flatten(view));
+        gl.uniformMatrix4fv(lightModel, false, flatten(model));
+        gl.uniformMatrix4fv(lightProjection, false, flatten(projection));
         light.setUniforms();
         /*======== Associating shaders to buffer objects ========*/
         // Bind vertex buffer object
@@ -271,10 +368,12 @@
         //   gl.drawArrays(gl.POINTS, i, 1);
         // }
 
+        cube.genUniforms();
         cube.associateBuffers();
         // cube.model = mult(cube.model, rotate(0.5, 0.0, 1.0, 0.0));
         cube.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);
+        cube.im.unbindTexture();
 
         // wall.associateBuffers();
         // wall.setUniforms();
@@ -288,13 +387,17 @@
         // wall3.setUniforms();
         // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         //
-        // wall4.associateBuffers();
-        // wall4.setUniforms();
-        // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        wall4.genUniforms();
+        wall4.associateBuffers();
+        wall4.setUniforms();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        wall4.im.unbindTexture();
 
+        flat.genUniforms()
         flat.associateBuffers();
         flat.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        flat.im.unbindTexture();
 
         // flat2.associateBuffers();
         // flat2.setUniforms();
@@ -302,14 +405,15 @@
 
         //This puts the gun model in the correct position for a fps style
         //----------------------------------------------------------------
-        // gun.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
-        // gun.model = mult(gun.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
-        // gun.model = mult(gun.model, rotate(-pitch, 1.0, 0.0, 0.0))
-        // gun.model = mult(gun.model, translate(10.0,-12.0,-25.0))
+        gun.model = mult(translate(eye[0],eye[1],eye[2]), scale(0.01,0.01,0.01))
+        gun.model = mult(gun.model, rotate(-yaw - 90, 0.0, eye[1], 0.0))
+        gun.model = mult(gun.model, rotate(-pitch, 1.0, 0.0, 0.0))
+        gun.model = mult(gun.model, translate(10.0,-12.0,-25.0))
+        gl.uniformMatrix4fv(lightModel, false, flatten(gun.model))
         //----------------------------------------------------------------
-        // gun.associateBuffers();
-        // gun.setUniforms();
-        // gl.drawElements(gl.TRIANGLES, gun.data[0].length, gl.UNSIGNED_SHORT, 0);
+        gun.associateBuffers();
+        gun.setUniforms();
+        gl.drawElements(gl.TRIANGLES, gun.data[0].length, gl.UNSIGNED_SHORT, 0);
 
         useProgram(skyboxShader)
         skybox.associateBuffers();
@@ -322,7 +426,7 @@
         gl.uniformMatrix4fv(u_projection_lamp, false, flatten(perspective(90, canvas.width/canvas.height, 0.01, 1000)));
         gl.uniformMatrix4fv(u_view_lamp, false, flatten(lookat));
         // lamp.model = translate(0.5, (Math.sin(now) + 1.0) / 2.2, -0.5)//uncomment for moving lamp
-        lamp.model = translate(0.0, 1.9, -0.5)
+        lamp.model = translate(2.5, 1.5, 0.0)
         lamp.associateBuffers();
         lamp.setUniforms();
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 24);

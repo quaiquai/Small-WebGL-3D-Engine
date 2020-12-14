@@ -1,7 +1,8 @@
 class Texture{
   constructor(path){
     this.texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    // gl.activeTexture(gl.TEXTURE0)
+    // gl.bindTexture(gl.TEXTURE_2D, this.texture);
     this.imagePath = path;
     this.image = new Image();
     this.image.src = this.imagePath;
@@ -9,6 +10,8 @@ class Texture{
 
   loadTexture(im){
     // Fill the texture with a 1x1 blue pixel.
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
                   new Uint8Array([0, 0, 255, 255]));
 
@@ -33,6 +36,12 @@ class Texture{
   }
 
   bindTexture(){
+    gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
+  }
+
+  unbindTexture(){
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, null);
   }
 }
