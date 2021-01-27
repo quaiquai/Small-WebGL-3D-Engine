@@ -4,7 +4,7 @@ Project-Link is a WebGL 3D engine in the making. This engine will support scene 
 ---
 
 ## Current Path tracing Abilities
-![alt text](./src/assets/images/pathTraceRendering.PNG)
+![alt text](./src/assets/images/path_tracing.PNG)
 
 ---
 
