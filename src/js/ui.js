@@ -29,7 +29,7 @@ class UI{
   mouseDown(x,y){
     var t;
     var origin = eye;
-    var ray = getEyeRay(this.modelviewProjection.inverse(), (x / 1280) * 2 - 1, 1 - (y / 720) * 2);
+    var ray = getEyeRay(this.modelviewProjection.inverse(), 0, 0);
 
     // test the selection box first
     if(this.renderer.selectedObject != null) {
@@ -40,6 +40,9 @@ class UI{
       if(t < Number.MAX_VALUE) {
         var hit = origin.add(ray.multiply(t));
 
+
+
+        //normal based translation stuff
         if(Math.abs(hit.elements[0] - minBounds.elements[0]) < 0.001) this.movementNormal = Vector.create([-1, 0, 0]);
         else if(Math.abs(hit.elements[0] - maxBounds.elements[0]) < 0.001) this.movementNormal = Vector.create([+1, 0, 0]);
         else if(Math.abs(hit.elements[1] - minBounds.elements[1]) < 0.001) this.movementNormal = Vector.create([0, -1, 0]);
@@ -48,6 +51,7 @@ class UI{
         else this.movementNormal = Vector.create([0, 0, +1]);
 
         this.movementDistance = this.movementNormal.dot(hit);
+        this.movementDistance = 0.1;
         this.originalHit = hit;
         this.moving = true;
 
@@ -76,7 +80,7 @@ class UI{
 
       var t = (this.movementDistance - this.movementNormal.dot(origin)) / this.movementNormal.dot(ray);
       var hit = origin.add(ray.multiply(t));
-      this.renderer.selectedObject.temporaryTranslate(hit.subtract(this.originalHit));
+      this.renderer.selectedObject.temporaryTranslate(hit.subtract(this.originalHit)); //use for normal based translation
 
       // clear the sample buffer
       this.renderer.pathTracer.sampleCount = 0;
@@ -91,7 +95,8 @@ class UI{
       var t = (this.movementDistance - this.movementNormal.dot(origin)) / this.movementNormal.dot(ray);
       var hit = origin.add(ray.multiply(t));
       this.renderer.selectedObject.temporaryTranslate(Vector.create([0, 0, 0]));
-      this.renderer.selectedObject.translate(hit.subtract(this.originalHit));
+      this.renderer.selectedObject.translate(hit.subtract(this.originalHit)); //use for normal based transltating
+
       this.moving = false;
     }
   }

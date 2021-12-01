@@ -317,10 +317,10 @@ var ui;
 var error;
 var canvas;
 var inputFocusCount = 0;
-
+var mouseLock = false
 var angleX = 0;
-var angleY = 0;
-var forwardX = 0;
+var angleY = -90;
+var forwardX = -5;
 var forwardZ = 0;
 var strafe = 0;
 var yaw = 0;
@@ -347,64 +347,12 @@ var objectsList;
 var MATERIAL_DIFFUSE = 0;
 var MATERIAL_MIRROR = 1;
 var MATERIAL_GLOSSY = 2;
-var material = MATERIAL_MIRROR ;
+var material = MATERIAL_GLOSSY ;
 var glossiness = 0.6;
 
 var STEPS1 = 0;
 var RED_GREEN_CORNELL_BOX = 1;
 var environment = STEPS1;
-
-function checkJump(){
-  positionY = velocityY;
-  if(positionY < maxjump && onGround == false  && falling == false){
-    velocityY += 0.05;
-    ui.renderer.pathTracer.sampleCount = 0; //clearing the samle buffer
-  }
-  if(positionY > maxjump && onGround == false){
-    velocityY = maxjump;
-    falling = true;
-    ui.renderer.pathTracer.sampleCount = 0; //clearing the samle
-  }
-  if(onGround == false && positionY <= maxjump && falling == true){
-    for(i = 1; i < objectsList.length; i++){
-      if(eye.elements[0] < objectsList[i].maxCorner.elements[0] && eye.elements[0] > objectsList[i].minCorner.elements[0]
-        && eye.elements[2] < objectsList[i].maxCorner.elements[2] && eye.elements[2] > objectsList[i].minCorner.elements[2]
-        && eye.elements[1] > objectsList[i].maxCorner.elements[1])
-        {
-          velocityY = objectsList[i].maxCorner.elements[1] + 1;
-          onGround = true;
-          falling = false;
-          // onplatform = true;
-          onObject = objectsList[i];
-          return;
-          // ui.renderer.pathTracer.sampleCount = 0; //clearing the samle buffer
-          // document.getElementById('myAudio').play();
-         }else{
-          onGround = false;
-          falling = true;
-          velocityY -= 0.01;
-          // ui.renderer.pathTracer.sampleCount = 0; //clearing the samle
-        }
-      }
-    }
-
-  if(onplatform == true){
-    if(eye.elements[0] > onObject.maxCorner.elements[0] || eye.elements[0] < onObject.minCorner.elements[0]
-      || eye.elements[2] > onObject.maxCorner.elements[2] || eye.elements[2] < onObject.minCorner.elements[2]
-      || eye.elements[1] < onObject.maxCorner.elements[1] && onGround == true){
-        onGround = false;
-        falling = true;
-        onplatform = false;
-      }
-  }
-  if(velocityY < 0){
-    velocityY = 0;
-    onGround = true;
-    falling = false;
-    onplatform = false;
-  }
-
-}
 
 
 function tick(timeSinceStart) {
@@ -444,7 +392,6 @@ function tick(timeSinceStart) {
   at.elements[1] = Math.sin((Math.PI/180) *angleX);
   at.elements[2] = Math.cos((Math.PI/180) *angleX) * Math.sin((Math.PI/180) *angleY);
 
-  checkJump();
   ui.updateEnvironment();
   ui.update(timeSinceStart);
   ui.render();
@@ -454,12 +401,12 @@ window.onload = function() {
   gl = null;
   error = document.getElementById('error');
   canvas = document.getElementById('canvas');
+
   try { gl = canvas.getContext('experimental-webgl'); } catch(e) {}
 
-  canvas.requestPointerLock = canvas.requestPointerLock ||
-                        canvas.mozRequestPointerLock;
-  document.exitPointerLock = document.exitPointerLock ||
-                             document.mozExitPointerLock;
+  //logic for requesting the pointer lock in browser
+  canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+  document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
   canvas.onclick = function() {
     canvas.requestPointerLock();
   };
@@ -469,6 +416,7 @@ window.onload = function() {
   document.addEventListener('pointerlockchange', lockChangeAlert, false);
   document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
 
+  //add alerts and event listeners for the functions of moving the camera when the mouse moves
   function lockChangeAlert() {
     if (document.pointerLockElement === canvas ||
         document.mozPointerLockElement === canvas) {
@@ -480,16 +428,15 @@ window.onload = function() {
     }
   }
 
+  //update the orientation/rotation of the virtual camera if the mouse is locked
   function updatePosition(event){
     var mouse = canvasMousePos(event);
-    if(mouseDown) {
+    if(mouseLock) {
 
       // update the angles based on how far we moved since last time
       angleY += 0.1 * event.movementX;
 
       angleX -= 0.1 * event.movementY;
-
-      console.log(angleY, angleX)
 
       // don't go upside down
       angleX = Math.max(Math.min(angleX, 89), -89)
@@ -497,12 +444,17 @@ window.onload = function() {
       // clear the sample buffer
       ui.renderer.pathTracer.sampleCount = 0;
 
+      if(mouseDown){
+        ui.mouseMove(1280/2 + angleX, 720/2 + angleY);
+      }
+
       // remember this coordinate
       oldX = mouse.x;
       oldY = mouse.y;
+
     } else {
       var canvasPos = elementPos(canvas);
-      ui.mouseMove(mouse.x, mouse.y);
+
     }
   }
 
@@ -561,53 +513,33 @@ var mouseDown = false, oldX, oldY;
 
 document.onmousedown = function(event) {
   var mouse = canvasMousePos(event);
-  oldX = mouse.x;
-  oldY = mouse.y;
 
-  if(keyState[70]){
-    mouseDown = !ui.mouseDown(1280/2, 720/2);
-  }
+
   if(mouse.x >= 0 && mouse.x < 1280 && mouse.y >= 0 && mouse.y < 720) {
-    mouseDown = !ui.mouseDown(mouse.x, mouse.x);
-
+    mouseDown = ui.mouseDown(mouse.x, mouse.x);
+    mouseLock = true;
     // disable selection because dragging is used for rotating the camera and moving objects
     // return false;
   }
 
+  if(mouseDown){
+    //middle of canvas
+    ui.mouseMove(1280/2, 720/2)
+  }
+
+  oldX = mouse.x;
+  oldY = mouse.y;
+
   return true;
 };
 
-// document.onmousemove = function(event) {
-//   var mouse = canvasMousePos(event);
-//
-//   if(mouseDown) {
-//
-//     // update the angles based on how far we moved since last time
-//     angleY += (mouse.x - oldX) * 0.1;
-//
-//     angleX += (mouse.y - oldY) * 0.1;
-//
-//     // don't go upside down
-//     angleX = Math.max(Math.min(angleX, 89), -89)
-//
-//     // clear the sample buffer
-//     ui.renderer.pathTracer.sampleCount = 0;
-//
-//     // remember this coordinate
-//     oldX = mouse.x;
-//     oldY = mouse.y;
-//   } else {
-//     var canvasPos = elementPos(canvas);
-//     ui.mouseMove(mouse.x, mouse.y);
-//   }
-// };
 
 document.onmouseup = function(event) {
-  // mouseDown = false;
+  mouseDown = false;
 
   var mouse = canvasMousePos(event);
   console.log(mouse.x, mouse.y)
-  ui.mouseUp(1280/2, 720/2);
+  ui.mouseUp(1280/2 + angleX, 720/2 + angleY);
 };
 
 window.addEventListener('keydown',function(e){
