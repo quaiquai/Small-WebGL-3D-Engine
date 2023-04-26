@@ -13,5 +13,3 @@ Project-Link is a WebGL 3D engine in the making. This engine will support scene 
 
 ---
 
-## Current testing room
-![alt text](./src/assets/images/boxRoom.PNG)
